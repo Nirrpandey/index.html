@@ -151,7 +151,10 @@ const TREND_KEY = 'twv_rzst_trend_v1';
 const BOX_KEY = 'twv_rzst_box_v1';
 const AVWAP_KEY = 'twv_rzst_avwap_v1';
 let LIB = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
-let LAYER_VIS = Object.assign({piv:true,wma:true,vol:true,dc:true,dpo:true,macd:true,mfi:true,kama:true,hull:true,cks:true,stoch:true,paf:true,obv:true,khsig:true,emacross:true,turbo:true,avwap:true,ma120:true,ma180:true}, JSON.parse(localStorage.getItem('twv_rzst_layers_v1') || '{}'));
+// Default state: only MA21 (trend color) is on out of the box — everything else is an opt-in "option" the
+// user turns on themselves. Foundation for the planned key/license-gated tiers (see [[nepse-scrip-dashboards]]
+// serial-key plan) — free/default view = MA21 only, unlocking more indicators is a later gating step on top of this.
+let LAYER_VIS = Object.assign({piv:false,wma:false,vol:false,dc:false,dpo:false,macd:false,mfi:false,kama:false,hull:false,cks:false,stoch:false,paf:false,obv:false,khsig:false,emacross:false,turbo:false,avwap:false,ma120:false,ma180:false,ma21c:true}, JSON.parse(localStorage.getItem('twv_rzst_layers_v1') || '{}'));
 function saveLayerVis(){ localStorage.setItem('twv_rzst_layers_v1', JSON.stringify(LAYER_VIS)); }
 let RAYS = JSON.parse(localStorage.getItem(RAY_KEY) || '{}');
 let TRENDLINES = JSON.parse(localStorage.getItem(TREND_KEY) || '{}');
@@ -967,7 +970,8 @@ function render(sym){
     avwapLowBands: avwapWithBands(bars, lastFractalIndex(lowF)),
     avwapManual: (AVWAPS[sym]||[]).map(a => ({side:a.side, bands: avwapWithBands(bars, a.globalIdx)})),
     ma120Arr: sma(closes, 120),
-    ma180Arr: sma(closes, 180)
+    ma180Arr: sma(closes, 180),
+    ma21Arr: sma(closes, 21)
   };
   chartExtra.kamaHullArr = kamaHullClassify(bars, chartExtra.kamaArr, chartExtra.hullArr, chartExtra.pafFlags);
   const khLast = chartExtra.kamaHullArr[chartExtra.kamaHullArr.length-1];
@@ -1032,6 +1036,7 @@ function render(sym){
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="mfi" ${LAYER_VIS.mfi?'checked':''}> <span style="color:#B084F5;">MFI 14</span></label>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="ma120" ${LAYER_VIS.ma120?'checked':''}> <span style="color:#D4A017;">MA120</span></label>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="ma180" ${LAYER_VIS.ma180?'checked':''}> <span style="color:#6A5ACD;">MA180</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="ma21c" ${LAYER_VIS.ma21c?'checked':''}> <span style="color:#E7EEF7;">MA21 (trend color)</span></label>
           </div>
           <div style="font-size:10px;color:#4a5b78;letter-spacing:.5px;margin-bottom:4px;">EXTRA INDICATORS</div>
           <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:11px;color:var(--dim);">
@@ -1524,6 +1529,7 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra){
   const stochDSlice = (extra.stochRes ? extra.stochRes.dLine : []).slice(off);
   const pafSlice = (extra.pafFlags||[]).slice(off);
   const kamaHullSlice = (extra.kamaHullArr||[]).slice(off);
+  const ma21Slice = (extra.ma21Arr||[]).slice(off);
   const emaCrossFastSlice = (extra.emaCrossFastArr||[]).slice(off);
   const emaCrossSlowSlice = (extra.emaCrossSlowArr||[]).slice(off);
   const temaSlice = (extra.temaArr||[]).slice(off);
@@ -1618,6 +1624,20 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra){
     let st180=false;
     ma180Slice.forEach((v,i)=>{ if(v==null) return; const px=x(i), py=y(v); if(!st180){ctx.moveTo(px,py); st180=true;} else ctx.lineTo(px,py); });
     ctx.stroke();
+  }
+
+  // ---- MA21 (trend color) — segment-colored by price vs MA: green when close>MA, red when MA>close, blue when equal ----
+  if(LAYER_VIS.ma21c){
+    ctx.lineWidth=1.6;
+    for(let i=1;i<N;i++){
+      const v0=ma21Slice[i-1], v1=ma21Slice[i];
+      if(v0==null || v1==null) continue;
+      const c = slice[i].c, ma = v1;
+      const diff = c - ma;
+      const eps = ma * 0.0005; // effectively-equal tolerance for real price data
+      ctx.strokeStyle = Math.abs(diff) <= eps ? '#4C8DFF' : (diff > 0 ? '#26C281' : '#E14B4B');
+      ctx.beginPath(); ctx.moveTo(x(i-1), y(v0)); ctx.lineTo(x(i), y(v1)); ctx.stroke();
+    }
   }
 
   // ---- Layer 4: DC21 mid (Donchian) ----
@@ -1842,6 +1862,7 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra){
     const txt = ang!=null ? `MA180 ${ang>=0?'↗':'↘'}${Math.abs(ang).toFixed(1)}°` : 'MA180';
     ctx.fillText(txt, lx, 37); lx += 20 + txt.length*5.5;
   }
+  if(LAYER_VIS.ma21c){ ctx.fillStyle='#E7EEF7'; ctx.fillText('MA21', lx, 37); lx+=48; }
 
   // fractal markers
   slice.forEach((b,i)=>{
