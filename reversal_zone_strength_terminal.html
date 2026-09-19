@@ -27,7 +27,7 @@
   input[type=file]{display:none;}
   select, input[type=text]{background:var(--panel2);border:1px solid var(--line);color:var(--txt);
     padding:7px 10px;border-radius:6px;font-family:'Chakra Petch',sans-serif;font-size:13px;}
-  main{padding:18px 22px;display:grid;grid-template-columns:3fr minmax(280px,1fr);gap:12px;}
+  main{padding:18px 22px;display:grid;grid-template-columns:3.4fr minmax(230px,0.85fr);gap:12px;}
   @media(max-width:720px){main{grid-template-columns:1fr;}}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;}
   .chartcard{padding:12px;}
@@ -36,11 +36,12 @@
     border:1px solid var(--line);border-radius:8px;padding:16px 18px;font-size:15px;}
   .verdict .label{color:var(--dim);font-size:11px;letter-spacing:.4px;margin-bottom:6px;}
   .verdict .line{font-family:'Share Tech Mono',monospace;font-size:16px;line-height:1.6;}
-  .dimgrid{display:grid;grid-template-columns:1fr;gap:8px;}
-  .dim{border:1px solid var(--line);border-radius:7px;padding:9px 10px;background:var(--panel2);}
-  .dim h3{margin:0 0 6px;font-size:10.5px;color:var(--dim);letter-spacing:.3px;font-weight:600;}
-  .dim .val{font-size:16px;font-weight:600;margin-bottom:4px;}
-  .dim .detail{font-size:11.5px;color:var(--dim);line-height:1.45;}
+  .dimgrid{display:grid;grid-template-columns:1fr;gap:7px;}
+  .dim{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--panel2);transition:border-color .15s,transform .15s;}
+  .dim:hover{border-color:var(--accent);transform:translateY(-1px);}
+  .dim h3{margin:0 0 5px;font-size:9.5px;color:var(--dim);letter-spacing:.5px;font-weight:600;}
+  .dim .val{font-size:14px;font-weight:600;margin-bottom:3px;}
+  .dim .detail{font-size:10.5px;color:var(--dim);line-height:1.4;}
   .badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin-right:6px;}
   .b-bull{background:rgba(38,194,129,.15);color:var(--green);}
   .b-bear{background:rgba(225,75,75,.15);color:var(--red);}
@@ -87,6 +88,10 @@
     <img id="brandLogoImg" style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;cursor:pointer;" onclick="toggleLogoDisclaimer()" src="data:image/jpeg;base64,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" alt="Trade With Vibes">
     <div id="logoDisclaimer" class="mono" style="display:none;position:absolute;top:44px;left:0;z-index:20;background:rgba(10,18,32,.97);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--txt);width:280px;line-height:1.5;box-shadow:0 4px 14px rgba(0,0,0,.4);">
       * Analysis engine, not a data source/feed. Data must be uploaded from NEPSE by you, every session — nothing loads or updates on its own. Trade at your own risk; this is not financial advice.
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <a href="mailto:nirrpandey@gmail.com?subject=Reversal%2FZone%2FStrength%20Terminal%20—%20Key%20Request" style="flex:1;text-align:center;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 0;color:var(--txt);text-decoration:none;font-size:11px;">🔑 Request Key</a>
+        <a href="mailto:nirrpandey@gmail.com?subject=Reversal%2FZone%2FStrength%20Terminal%20—%20Issue%20Report" style="flex:1;text-align:center;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 0;color:var(--txt);text-decoration:none;font-size:11px;">💬 Report Issue</a>
+      </div>
     </div>
     <div>
     <h1>REVERSAL <span>·</span> ZONE <span>·</span> STRENGTH TERMINAL</h1>
@@ -100,6 +105,7 @@
     <button id="topExportBtn">⇩ Export Excel</button>
     <button id="topShareBtn">↗ Share</button>
     <button id="clearBtn">Remove selected scrip</button>
+    <button id="clearAllBtn" style="border-color:var(--red);color:var(--red);">🗑 Remove All Scrips</button>
     <button id="backupBtn">💾 Backup</button>
     <label class="filebtn" for="restoreFile">📤 Restore</label>
     <input type="file" id="restoreFile" accept=".json" style="display:none;">
@@ -127,6 +133,8 @@
       <option value="EXPANDING">Expanding</option><option value="EXTREME">Extreme</option>
     </select></div>
     <div><input type="text" id="fSearch" placeholder="Search scrip..." style="width:110px;"></div>
+    <div><label>Group</label><select id="fGroup"><option value="all">All</option></select></div>
+    <div><button id="removeGroupBtn" class="mono" style="font-size:11px;padding:6px 10px;border-color:var(--red);color:var(--red);">🗑 Remove Group</button></div>
     <div><button id="exportAllBtn" class="mono" style="font-size:11px;padding:6px 10px;">⇩ Export All (Excel)</button></div>
     <div class="count" id="screenerCount"></div>
   </div>
@@ -144,7 +152,7 @@
   </div>
 </main>
 
-<footer>tradevibes.blogspot.com · nepsevibes.com · Trade With Vibes — teaching tool, not a buy/sell signal. Always confirm with your own risk rules.</footer>
+<footer>tradevibes.blogspot.com · nepsevibes.com · nirrpandey@gmail.com · Trade With Vibes — teaching tool, not a buy/sell signal. Always confirm with your own risk rules.</footer>
 
 <script>
 // chart canvas height is now computed dynamically in drawChart() from which subpanels are checked on
@@ -153,11 +161,18 @@ const RAY_KEY = 'twv_rzst_rays_v1';
 const TREND_KEY = 'twv_rzst_trend_v1';
 const BOX_KEY = 'twv_rzst_box_v1';
 const AVWAP_KEY = 'twv_rzst_avwap_v1';
+const SECTOR_KEY = 'twv_rzst_sectors_v1';
+// The 13 official NEPSE sub-index sectors — scrips are tagged one-per-sector so a whole sector's worth of
+// loaded scrips can be bulk-removed at once (e.g. handing a fresh instance to a new group of users, or
+// clearing out one sector's test data without touching the rest of the library).
+const SECTOR_GROUPS = ['Commercial Banks','Development Banks','Finance','Hotels and Tourism','Hydropower','Investment','Life Insurance','Manufacturing and Processing','Microfinance','Mutual Funds','Non-Life Insurance','Others','Trading'];
+let SECTOR_MAP = JSON.parse(localStorage.getItem(SECTOR_KEY) || '{}'); // {SYM: 'Hydropower', ...}
+function saveSectorMap(){ localStorage.setItem(SECTOR_KEY, JSON.stringify(SECTOR_MAP)); }
 let LIB = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
 // Default state: only MA21 (trend color) is on out of the box — everything else is an opt-in "option" the
 // user turns on themselves. Foundation for the planned key/license-gated tiers (see [[nepse-scrip-dashboards]]
 // serial-key plan) — free/default view = MA21 only, unlocking more indicators is a later gating step on top of this.
-let LAYER_VIS = Object.assign({piv:false,wma:false,vol:false,dc:false,dpo:false,macd:false,mfi:false,kama:false,hull:false,cks:false,stoch:false,paf:false,obv:false,khsig:false,emacross:false,turbo:false,avwap:false,ma120:false,ma180:false,ma21c:true}, JSON.parse(localStorage.getItem('twv_rzst_layers_v1') || '{}'));
+let LAYER_VIS = Object.assign({piv:false,wma:false,vol:false,dc:false,dpo:false,macd:false,mfi:false,kama:false,hull:false,cks:false,stoch:false,paf:false,obv:false,khsig:false,emacross:false,turbo:false,avwap:false,ma120:false,ma180:false,ma21c:true,chikou:false,magap:false}, JSON.parse(localStorage.getItem('twv_rzst_layers_v1') || '{}'));
 function saveLayerVis(){ localStorage.setItem('twv_rzst_layers_v1', JSON.stringify(LAYER_VIS)); }
 
 // ---------- Price-level alerts (Pivot + manual AVWAP) — beep + visual flag when the latest close touches/crosses
@@ -254,7 +269,7 @@ function parseCSV(text, fallbackScrip){
   for(let i=1;i<lines.length;i++){
     const parts = lines[i].split(',').map(p=>p.trim().replace(/"/g,''));
     if(parts.length < 5) continue;
-    const sym = cScrip !== -1 ? parts[cScrip] : (fallbackScrip || 'UNKNOWN');
+    const sym = (cScrip !== -1 ? parts[cScrip] : (fallbackScrip || 'UNKNOWN')).trim().toUpperCase();
     const d = cDate!==-1 ? parts[cDate] : null;
     const o = cOpen!==-1 ? parseFloat((parts[cOpen]||'').replace(/,/g,'')) : NaN;
     const h = parseFloat((parts[cHigh]||'').replace(/,/g,''));
@@ -274,6 +289,7 @@ function toggleLogoDisclaimer(){
   const el = document.getElementById('logoDisclaimer');
   el.style.display = el.style.display==='none' ? 'block' : 'none';
 }
+window.toggleLogoDisclaimer = toggleLogoDisclaimer;
 document.addEventListener('click', (e)=>{
   const el = document.getElementById('logoDisclaimer');
   if(el.style.display==='block' && e.target.id!=='brandLogoImg' && !el.contains(e.target)) el.style.display='none';
@@ -304,6 +320,17 @@ document.getElementById('clearBtn').addEventListener('click', ()=>{
   saveLib();
   currentScrip = null;
   document.getElementById('mainArea').innerHTML = '<div class="empty" style="grid-column:1/-1;">Scrip removed. Pick another row from the screener.</div>';
+  renderAll();
+});
+document.getElementById('clearAllBtn').addEventListener('click', ()=>{
+  const count = Object.keys(LIB).length;
+  if(!count){ alert('No scrips loaded — already a fresh start.'); return; }
+  if(!confirm(`Remove all ${count} loaded scrip(s) and start fresh? This also clears any rays/trend lines/boxes/AVWAP anchors and group tags saved against them. This cannot be undone — use Backup first if you want to keep a copy.`)) return;
+  LIB = {}; RAYS = {}; TRENDLINES = {}; BOXES = {}; AVWAPS = {}; SECTOR_MAP = {};
+  saveLib(); saveRays(); saveTrendLines(); saveBoxes(); saveAvwaps(); saveSectorMap();
+  currentScrip = null;
+  ALERTED_KEYS.clear();
+  document.getElementById('mainArea').innerHTML = '<div class="empty" style="grid-column:1/-1;">Load daily OHLCV CSVs to run the terminal.</div>';
   renderAll();
 });
 
@@ -348,6 +375,7 @@ function applyFilters(rows){
   const zoneF = document.getElementById('fZone').value;
   const zoneStatusF = document.getElementById('fZoneStatus').value;
   const strengthF = document.getElementById('fStrength').value;
+  const groupF = document.getElementById('fGroup').value;
   const search = document.getElementById('fSearch').value.trim().toUpperCase();
   return rows.filter(r=>{
     if(bias!=='all' && r.phase.bias!==bias) return false;
@@ -355,6 +383,7 @@ function applyFilters(rows){
     if(zoneF!=='all' && !r.zone.type.toUpperCase().includes(zoneF)) return false;
     if(zoneStatusF!=='all' && r.zone.status!==zoneStatusF) return false;
     if(strengthF!=='all' && r.strength.band!==strengthF) return false;
+    if(groupF!=='all' && (SECTOR_MAP[r.sym]||'Unassigned')!==groupF) return false;
     if(search && !r.sym.toUpperCase().includes(search)) return false;
     return true;
   });
@@ -378,6 +407,7 @@ function renderScreener(){
   document.getElementById('screenerCount').textContent = rows.length+' of '+all.length+' scrips';
   const head = `<thead><tr>
     <th onclick="setSort('sym')">SCRIP</th>
+    <th>GROUP</th>
     <th onclick="setSort('close')">CLOSE</th>
     <th onclick="setSort('phase')">PHASE</th>
     <th>BIAS</th>
@@ -392,8 +422,14 @@ function renderScreener(){
                        r.phase.bias==='bear' ? '<span class="badge b-bear">BEAR</span>' : '<span class="badge b-neutral">—</span>';
     const statusBadge = r.zone.status==='CONFIRMED' ? '<span class="badge b-confirmed">CONFIRMED</span>' :
                          r.zone.status==='WATCH' ? '<span class="badge b-watch">WATCH</span>' : '—';
+    const curSector = SECTOR_MAP[r.sym] || '';
+    const sectorSelect = `<select class="mono" onclick="event.stopPropagation()" onchange="event.stopPropagation(); setScripSector('${r.sym}', this.value)" style="font-size:10px;padding:2px 4px;">
+      <option value="" ${curSector===''?'selected':''}>Unassigned</option>
+      ${SECTOR_GROUPS.map(g=>`<option value="${g}" ${curSector===g?'selected':''}>${g}</option>`).join('')}
+    </select>`;
     return `<tr class="${r.sym===currentScrip?'sel':''}" onclick="selectScrip('${r.sym}')">
       <td class="scripcell mono">${r.sym}</td>
+      <td>${sectorSelect}</td>
       <td class="mono">${r.last.c.toFixed(2)}</td>
       <td>${r.phase.state}${r.phase.broke?' ⚑':''}</td>
       <td>${biasBadge}</td>
@@ -406,12 +442,37 @@ function renderScreener(){
   }).join('')+'</tbody>';
   document.getElementById('screenerTable').innerHTML = head+body;
 }
+function setScripSector(sym, sector){
+  if(sector) SECTOR_MAP[sym] = sector; else delete SECTOR_MAP[sym];
+  saveSectorMap();
+}
+window.setScripSector = setScripSector;
 function setSort(col){
   if(sortCol===col) sortDir*=-1; else { sortCol=col; sortDir=1; }
   renderScreener();
 }
 window.setSort = setSort;
-['fBias','fPhase','fZone','fZoneStatus','fStrength'].forEach(id=>{
+// populate the Group filter dropdown once with the 13 sectors + Unassigned
+(function initGroupFilter(){
+  const sel = document.getElementById('fGroup');
+  sel.innerHTML = '<option value="all">All</option><option value="Unassigned">Unassigned</option>' +
+    SECTOR_GROUPS.map(g=>`<option value="${g}">${g}</option>`).join('');
+})();
+document.getElementById('removeGroupBtn').addEventListener('click', ()=>{
+  const g = document.getElementById('fGroup').value;
+  if(g==='all'){ alert('Pick a specific group first (not "All").'); return; }
+  const syms = Object.keys(LIB).filter(s => (SECTOR_MAP[s]||'Unassigned')===g);
+  if(!syms.length){ alert('No loaded scrips are in that group.'); return; }
+  if(!confirm(`Remove ${syms.length} scrip(s) in "${g}"? This also clears any rays/trend lines/boxes/AVWAP anchors saved against them. Use Backup first if you want to keep a copy.`)) return;
+  syms.forEach(s=>{ delete LIB[s]; delete RAYS[s]; delete TRENDLINES[s]; delete BOXES[s]; delete AVWAPS[s]; delete SECTOR_MAP[s]; });
+  saveLib(); saveRays(); saveTrendLines(); saveBoxes(); saveAvwaps(); saveSectorMap();
+  if(syms.includes(currentScrip)){
+    currentScrip = null;
+    document.getElementById('mainArea').innerHTML = '<div class="empty" style="grid-column:1/-1;">Group removed. Pick another row from the screener.</div>';
+  }
+  renderAll();
+});
+['fBias','fPhase','fZone','fZoneStatus','fStrength','fGroup'].forEach(id=>{
   document.getElementById(id).addEventListener('change', renderScreener);
 });
 document.getElementById('fSearch').addEventListener('input', renderScreener);
@@ -675,6 +736,20 @@ function dpo(closes, period){
     out[i] = closes[i-shift] - smaArr[i];
   }
   return out;
+}
+// Chikou Span (Ichimoku lagging line), 21-day — today's close plotted 21 bars back on the time axis, so it
+// sits alongside price from 21 sessions ago. Chikou above those older candles = bullish confirmation, below =
+// bearish. Paired with DPO(21): DPO strips the trend to show cycle position, Chikou compares raw price
+// directly against its own past — used together as a trend-confirmation pair, same 21-day window as this setup.
+function chikouSpan(closes, period=21){
+  const n = closes.length;
+  const out = new Array(n).fill(null);
+  for(let i=0; i+period<n; i++) out[i] = closes[i+period];
+  return out;
+}
+// Price − MA21 gap, per bar — the raw +/- lag between LTP and the indicator (not normalized like DPO).
+function maGap(closes, maArr){
+  return closes.map((c,i)=> maArr[i]!=null ? c-maArr[i] : null);
 }
 function emaArr(vals, period){
   const out = new Array(vals.length).fill(null);
@@ -1040,7 +1115,9 @@ function render(sym){
     avwapManual: (AVWAPS[sym]||[]).map(a => ({side:a.side, bands: avwapWithBands(bars, a.globalIdx)})),
     ma120Arr: sma(closes, 120),
     ma180Arr: sma(closes, 180),
-    ma21Arr: sma(closes, 21)
+    ma21Arr: sma(closes, 21),
+    chikouArr: chikouSpan(closes, 21),
+    maGapArr: maGap(closes, sma(closes, 21))
   };
   chartExtra.kamaHullArr = kamaHullClassify(bars, chartExtra.kamaArr, chartExtra.hullArr, chartExtra.pafFlags);
   const khLast = chartExtra.kamaHullArr[chartExtra.kamaHullArr.length-1];
@@ -1110,6 +1187,8 @@ function render(sym){
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="vol" ${LAYER_VIS.vol?'checked':''}> <span style="color:#E14B4B;">Vol-Stop</span></label>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="dc" ${LAYER_VIS.dc?'checked':''}> <span style="color:#4C8DFF;">DC21 Mid</span></label>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="dpo" ${LAYER_VIS.dpo?'checked':''}> <span style="color:#26C281;">DPO21</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="chikou" ${LAYER_VIS.chikou?'checked':''}> <span style="color:#E7EEF7;">Chikou Span 21</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="magap" ${LAYER_VIS.magap?'checked':''}> <span style="color:#F5A524;">Price−MA21 Gap</span></label>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="macd" ${LAYER_VIS.macd?'checked':''}> <span style="color:#E7EEF7;">MACD 5-8-3</span></label>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="mfi" ${LAYER_VIS.mfi?'checked':''}> <span style="color:#B084F5;">MFI 14</span></label>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="ma120" ${LAYER_VIS.ma120?'checked':''}> <span style="color:#D4A017;">MA120</span></label>
@@ -1464,7 +1543,7 @@ function exportBackup(){
   const payload = {
     version: 1,
     exportedAt: new Date().toISOString(),
-    LIB, RAYS, TRENDLINES, BOXES, AVWAPS, LAYER_VIS
+    LIB, RAYS, TRENDLINES, BOXES, AVWAPS, LAYER_VIS, SECTOR_MAP
   };
   const blob = new Blob([JSON.stringify(payload)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -1485,6 +1564,7 @@ function importBackupFile(file){
       if(data.BOXES){ BOXES = Object.assign({}, BOXES, data.BOXES); saveBoxes(); }
       if(data.AVWAPS){ AVWAPS = Object.assign({}, AVWAPS, data.AVWAPS); saveAvwaps(); }
       if(data.LAYER_VIS){ LAYER_VIS = Object.assign({}, LAYER_VIS, data.LAYER_VIS); saveLayerVis(); }
+      if(data.SECTOR_MAP){ SECTOR_MAP = Object.assign({}, SECTOR_MAP, data.SECTOR_MAP); saveSectorMap(); }
       alert(`Restore complete — ${scripCount} scrip(s) merged in.`);
       renderScreener();
       if(currentScrip && LIB[currentScrip]) render(currentScrip);
@@ -1548,7 +1628,7 @@ async function shareScrip(sym){
   wrapText(octx, phase.detail, 16, headerH+chartH+40, w-32, 14);
 
   octx.fillStyle = '#6E8199'; octx.font = '11px monospace';
-  octx.fillText('tradevibes.blogspot.com · nepsevibes.com · Trade With Vibes', 16, totalH-14);
+  octx.fillText('tradevibes.blogspot.com · nepsevibes.com · nirrpandey@gmail.com · Trade With Vibes', 16, totalH-14);
 
   out.toBlob(async (blob)=>{
     const file = new File([blob], sym+'_terminal.png', {type:'image/png'});
@@ -1569,7 +1649,7 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra){
 
   // panel layout is computed first — subpanels only take space when their checkbox is ON
   const mainTop=46, mainH=292;
-  const panelDefs = [ {key:'dpo',h:62}, {key:'macd',h:86}, {key:'mfi',h:62}, {key:'stoch',h:62}, {key:'obv',h:62} ];
+  const panelDefs = [ {key:'dpo',h:62}, {key:'macd',h:86}, {key:'mfi',h:62}, {key:'stoch',h:62}, {key:'obv',h:62}, {key:'magap',h:62} ];
   const panelTop = {};
   let curBottom = mainTop+mainH;
   panelDefs.forEach(pd=>{
@@ -1610,6 +1690,8 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra){
   const pafSlice = (extra.pafFlags||[]).slice(off);
   const kamaHullSlice = (extra.kamaHullArr||[]).slice(off);
   const ma21Slice = (extra.ma21Arr||[]).slice(off);
+  const chikouSlice = (extra.chikouArr||[]).slice(off);
+  const maGapSlice = (extra.maGapArr||[]).slice(off);
   const emaCrossFastSlice = (extra.emaCrossFastArr||[]).slice(off);
   const emaCrossSlowSlice = (extra.emaCrossSlowArr||[]).slice(off);
   const temaSlice = (extra.temaArr||[]).slice(off);
@@ -1635,7 +1717,7 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra){
 
   // panel geometry already computed above (panelTop) — just alias here
   const padL=50, padR=16;
-  const dpoTop=panelTop.dpo, dpoH=62, macdTop=panelTop.macd, macdH=86, mfiTop=panelTop.mfi, mfiH=62, stochTop=panelTop.stoch, stochH=62, obvTop=panelTop.obv, obvH=62;
+  const dpoTop=panelTop.dpo, dpoH=62, macdTop=panelTop.macd, macdH=86, mfiTop=panelTop.mfi, mfiH=62, stochTop=panelTop.stoch, stochH=62, obvTop=panelTop.obv, obvH=62, magapTop=panelTop.magap, magapH=62;
   const padT=mainTop, plotH=mainH; // kept as padT/plotH — rays/trend/box tools and click handlers key off these
   const plotW = cssW-padL-padR;
   const x = i => padL + (i/(N-1))*plotW;
@@ -1718,6 +1800,15 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra){
       ctx.strokeStyle = Math.abs(diff) <= eps ? '#4C8DFF' : (diff > 0 ? '#26C281' : '#E14B4B');
       ctx.beginPath(); ctx.moveTo(x(i-1), y(v0)); ctx.lineTo(x(i), y(v1)); ctx.stroke();
     }
+  }
+
+  // ---- Chikou Span (21) — today's close plotted 21 bars back; compare it against the candles it now sits beside ----
+  if(LAYER_VIS.chikou){
+    ctx.setLineDash([5,3]); ctx.strokeStyle='#E7EEF7'; ctx.lineWidth=1.3; ctx.beginPath();
+    let stCh=false;
+    chikouSlice.forEach((v,i)=>{ if(v==null) return; const px=x(i), py=y(v); if(!stCh){ctx.moveTo(px,py); stCh=true;} else ctx.lineTo(px,py); });
+    ctx.stroke();
+    ctx.setLineDash([]);
   }
 
   // ---- Layer 4: DC21 mid (Donchian) ----
@@ -1943,6 +2034,7 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra){
     ctx.fillText(txt, lx, 37); lx += 20 + txt.length*5.5;
   }
   if(LAYER_VIS.ma21c){ ctx.fillStyle='#E7EEF7'; ctx.fillText('MA21', lx, 37); lx+=48; }
+  if(LAYER_VIS.chikou){ ctx.fillStyle='#E7EEF7'; ctx.fillText('CHIKOU21', lx, 37); lx+=78; }
 
   // fractal markers
   slice.forEach((b,i)=>{
@@ -2069,6 +2161,31 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra){
     ctx.font='10px Share Tech Mono';
     ctx.fillStyle='#E8C547'; ctx.fillText('OBV', padL, obvTop-2);
     ctx.fillStyle='#7C83FD'; ctx.fillText('WMA9', padL+40, obvTop-2);
+  }
+
+  // ---- Extra: Price−MA21 Gap — raw +/- distance of LTP from MA21 per bar (how much price is lagging/leading
+  //      the indicator), histogram + zero line, dynamic scale, only takes space when checked ----
+  if(LAYER_VIS.magap){
+    ctx.strokeStyle='#152238'; ctx.lineWidth=1; ctx.beginPath();
+    ctx.moveTo(padL,magapTop-14); ctx.lineTo(cssW-padR,magapTop-14); ctx.stroke();
+    const vals = maGapSlice.filter(v=>v!=null);
+    let gHi = vals.length ? Math.max(...vals,0.0001) : 1;
+    let gLo = vals.length ? Math.min(...vals,-0.0001) : -1;
+    const gPad = (gHi-gLo)*0.15 || 1; gHi+=gPad; gLo-=gPad;
+    const yGap = v => magapTop + (1-(v-gLo)/(gHi-gLo))*magapH;
+    ctx.setLineDash([3,3]); ctx.strokeStyle='#243350'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(padL,yGap(0)); ctx.lineTo(cssW-padR,yGap(0)); ctx.stroke(); ctx.setLineDash([]);
+    const bwG = Math.max(1, plotW/N*0.5); const zeroYg = yGap(0);
+    maGapSlice.forEach((v,i)=>{
+      if(v==null) return;
+      const px=x(i), vY=yGap(v);
+      ctx.fillStyle = v>=0 ? 'rgba(38,194,129,0.8)' : 'rgba(225,75,75,0.8)';
+      ctx.fillRect(px-bwG/2, Math.min(zeroYg,vY), bwG, Math.max(1,Math.abs(zeroYg-vY)));
+    });
+    const lastGap = lastVal(maGapSlice);
+    ctx.font='10px Share Tech Mono';
+    ctx.fillStyle = (lastGap!=null && lastGap>=0) ? '#26C281' : '#E14B4B';
+    ctx.fillText(`PRICE−MA21 ${lastGap!=null?(lastGap>=0?'+':'')+lastGap.toFixed(2):'-'}`, padL, magapTop-2);
   }
 
   // date labels (sparse)
