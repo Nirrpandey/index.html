@@ -184,10 +184,15 @@ const AVWAP_KEY = 'twv_rzst_avwap_v1';
 // ---------- Version lock — best-effort "deactivate old downloaded copies" check (not bulletproof; a
 // determined user can strip this from a local copy — see prior discussion). Fails OPEN: if the version
 // check can't be reached (offline, CORS, file not yet created), the tool works normally — this only
-// LOCKS when it can positively confirm a newer version has been issued. ----------
+// LOCKS when it can positively confirm a newer version has been issued.
+// TEMPORARILY DISABLED (2026-09-20) — caused more confusion than it was worth while getting GitHub Pages
+// + downloads in sync (Artifact-link-vs-download mixups, stale hosted copy, etc). Flip VERSION_LOCK_ENABLED
+// back to true once ready to re-adopt the workflow (keep version.json's "latest" in sync with TOOL_VERSION
+// at that point — they've likely drifted apart while this was off). ----------
+const VERSION_LOCK_ENABLED = false;
 const TOOL_VERSION = '2026-09-20-A';
 const VERSION_CHECK_URL = 'https://nirrpandey.github.io/index.html/version.json';
-(function checkVersionLock(){
+if(VERSION_LOCK_ENABLED){
   fetch(VERSION_CHECK_URL + '?t=' + Date.now(), {cache:'no-store'})
     .then(r => r.ok ? r.json() : null)
     .then(data => {
@@ -196,7 +201,7 @@ const VERSION_CHECK_URL = 'https://nirrpandey.github.io/index.html/version.json'
       }
     })
     .catch(()=>{ /* offline or version.json not published yet — fail open, tool stays usable */ });
-})();
+}
 
 const SECTOR_KEY = 'twv_rzst_sectors_v1';
 // The 13 official NEPSE sub-index sectors — scrips are tagged one-per-sector so a whole sector's worth of
