@@ -110,8 +110,29 @@
     <label class="filebtn" for="restoreFile">📤 Restore</label>
     <input type="file" id="restoreFile" accept=".json" style="display:none;">
     <button id="bakeBtn" title="Downloads a full copy of this tool with everything currently loaded (scrips, groups, drawings, settings) built in — opens ready, no re-upload needed. Useful for handing out a pre-loaded/demo copy as part of the key system.">🍞 Bake &amp; Download</button>
+    <button id="licenseBtn">🔒 Locked</button>
   </div>
 </header>
+
+<div id="licenseModal" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(4,10,20,.75);align-items:center;justify-content:center;">
+  <div style="background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:22px;width:360px;max-width:90vw;">
+    <h3 style="margin:0 0 4px;font-size:14px;color:var(--txt);">License</h3>
+    <div id="licenseStatusLine" class="mono" style="font-size:11px;color:var(--dim);margin-bottom:14px;"></div>
+    <div class="mono" style="font-size:11px;color:var(--dim);margin-bottom:4px;">Your Device ID (send this to request a key):</div>
+    <div style="display:flex;gap:6px;margin-bottom:14px;">
+      <input id="deviceIdField" class="mono" readonly style="flex:1;font-size:12px;padding:7px 8px;background:var(--panel2);border:1px solid var(--line);border-radius:5px;color:var(--txt);">
+      <button id="copyDeviceIdBtn" style="font-size:11px;padding:6px 10px;">Copy</button>
+    </div>
+    <a id="requestKeyModalLink" href="#" style="display:block;text-align:center;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:7px 0;color:var(--txt);text-decoration:none;font-size:11px;margin-bottom:16px;">🔑 Email Nirr this Device ID to get a key</a>
+    <div class="mono" style="font-size:11px;color:var(--dim);margin-bottom:4px;">Enter key:</div>
+    <div style="display:flex;gap:6px;">
+      <input id="keyInputField" class="mono" placeholder="XXXXX-XXXXX" style="flex:1;font-size:12px;padding:7px 8px;background:var(--panel2);border:1px solid var(--line);border-radius:5px;color:var(--txt);">
+      <button id="activateKeyBtn">Activate</button>
+    </div>
+    <div id="keyActivateMsg" class="mono" style="font-size:11px;margin-top:8px;"></div>
+    <button id="closeLicenseModalBtn" style="margin-top:16px;width:100%;">Close</button>
+  </div>
+</div>
 
 <div class="screener" id="screenerWrap" style="display:none;">
   <div class="filterbar">
@@ -138,6 +159,18 @@
     <div><button id="removeGroupBtn" class="mono" style="font-size:11px;padding:6px 10px;border-color:var(--red);color:var(--red);">🗑 Remove Group</button></div>
     <div><button id="exportAllBtn" class="mono" style="font-size:11px;padding:6px 10px;">⇩ Export All (Excel)</button></div>
     <div class="count" id="screenerCount"></div>
+  </div>
+  <div id="groupsLostBanner" style="display:none;align-items:center;gap:10px;margin:0 0 10px;padding:9px 12px;background:#2A1B0A;border:1px solid #C98A2C;border-radius:6px;color:#F0C480;font-size:12px;">
+    <span>⚠ No sector groups are tagged yet on this copy of the tool, but scrips are loaded — if this is a fresh/updated file and you have a Backup JSON from before, click Restore to bring your groups (and drawings) back instead of re-tagging by hand.</span>
+    <button id="dismissGroupsLostBanner" class="mono" style="font-size:11px;padding:4px 10px;flex-shrink:0;">Dismiss</button>
+  </div>
+  <div id="bulkGroupBar" style="display:none;align-items:center;gap:8px;margin:0 0 10px;padding:8px 10px;background:var(--panel2);border:1px solid var(--accent);border-radius:6px;">
+    <span id="bulkGroupCount" class="mono" style="font-size:11px;color:var(--txt);"></span>
+    <select id="bulkGroupSelect" class="mono" style="font-size:11px;">
+      <option value="">Unassigned</option>
+      </select>
+    <button id="bulkGroupApplyBtn" class="mono" style="font-size:11px;padding:5px 10px;">Assign group to selected</button>
+    <button id="bulkGroupClearBtn" class="mono" style="font-size:11px;padding:5px 10px;">Clear selection</button>
   </div>
   <div class="scrolltbl">
     <table class="screentbl" id="screenerTable"></table>
@@ -172,13 +205,14 @@
   </div>
 </div>
 
-<footer>tradevibes.blogspot.com · nepsevibes.com · nirrpandey@gmail.com · Trade With Vibes — teaching tool, not a buy/sell signal. Always confirm with your own risk rules.</footer>
+<footer>tradevibes.blogspot.com · nepsevibes.com · info: nirrpandey@gmail.com, 9808660880 · Trade With Vibes — teaching tool, not a buy/sell signal. Always confirm with your own risk rules.</footer>
 
 <script>
 // chart canvas height is now computed dynamically in drawChart() from which subpanels are checked on
 const STORE_KEY = 'twv_rzst_v1';
 const RAY_KEY = 'twv_rzst_rays_v1';
 const TREND_KEY = 'twv_rzst_trend_v1';
+const MANUAL_ABCD_KEY = 'twv_rzst_manual_abcd_v1';
 const BOX_KEY = 'twv_rzst_box_v1';
 const AVWAP_KEY = 'twv_rzst_avwap_v1';
 // ---------- Version lock — best-effort "deactivate old downloaded copies" check (not bulletproof; a
@@ -214,15 +248,60 @@ let LIB = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
 // Default state: only MA21 (trend color) is on out of the box — everything else is an opt-in "option" the
 // user turns on themselves. Foundation for the planned key/license-gated tiers (see [[nepse-scrip-dashboards]]
 // serial-key plan) — free/default view = MA21 only, unlocking more indicators is a later gating step on top of this.
-const DEFAULT_LAYER_VIS = {piv:false,wma:false,vol:false,dc:false,dpo:false,macd:false,mfi:false,kama:false,hull:false,cks:false,stoch:false,paf:false,obv:false,khsig:false,emacross:false,turbo:false,avwap:false,ma120:false,ma180:false,ma21c:true,chikou:false,magap:false};
+const DEFAULT_LAYER_VIS = {piv:false,wma:false,vol:false,dc:false,dpo:false,macd:false,mfi:false,kama:false,hull:false,cks:false,stoch:false,paf:false,obv:false,khsig:false,emacross:false,turbo:false,avwap:false,ma120:false,ma180:false,ma21c:true,chikou:false,magap:false,rsiwma:false,rs:false,abcd:false};
 let LAYER_VIS = Object.assign({}, DEFAULT_LAYER_VIS, JSON.parse(localStorage.getItem('twv_rzst_layers_v1') || '{}'));
 function saveLayerVis(){ localStorage.setItem('twv_rzst_layers_v1', JSON.stringify(LAYER_VIS)); }
+
+// ---------- Serial-key / device-lock (client-side gate — see [[nepse-scrip-dashboards]] serial-key plan) ----------
+// Honest limits: this is a soft gate, not real DRM. Anyone reading this file's source can find LICENSE_SECRET
+// and compute their own key, and "device" here means "this browser profile's localStorage", not real hardware —
+// clearing site data or opening a different browser looks like a new device. That's the accepted tradeoff for a
+// fully offline, no-server tool; it stops casual key-sharing without needing any backend.
+// CHANGE THIS before shipping, and keep it identical in key_generator.html or generated keys won't validate here.
+const LICENSE_SECRET = 'TWV-RZST-2026-CHANGE-ME';
+const DEVICE_ID_KEY = 'twv_rzst_device_id';
+const LICENSE_KEY_KEY = 'twv_rzst_license_key';
+function getDeviceId(){
+  let id = localStorage.getItem(DEVICE_ID_KEY);
+  if(!id){
+    const bytes = new Uint8Array(6); crypto.getRandomValues(bytes);
+    id = Array.from(bytes).map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
+    localStorage.setItem(DEVICE_ID_KEY, id);
+  }
+  return id;
+}
+async function computeKeyFor(deviceId){
+  const enc = new TextEncoder().encode(deviceId+'|'+LICENSE_SECRET);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  const hex = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
+  const raw = hex.slice(0,10);
+  return raw.slice(0,5)+'-'+raw.slice(5,10);
+}
+function normalizeKey(k){ return (k||'').toUpperCase().replace(/[^A-Z0-9]/g,''); }
+let LICENSED = false; // flipped true by checkLicense() below, before first render
+async function checkLicense(){
+  const deviceId = getDeviceId();
+  const savedKey = localStorage.getItem(LICENSE_KEY_KEY);
+  if(!savedKey){ LICENSED=false; return false; }
+  const expected = await computeKeyFor(deviceId);
+  LICENSED = normalizeKey(savedKey)===normalizeKey(expected);
+  return LICENSED;
+}
+async function activateKey(enteredKey){
+  const deviceId = getDeviceId();
+  const expected = await computeKeyFor(deviceId);
+  const ok = normalizeKey(enteredKey)===normalizeKey(expected);
+  if(ok){ localStorage.setItem(LICENSE_KEY_KEY, normalizeKey(enteredKey)); LICENSED=true; }
+  return ok;
+}
 
 // ---------- Price-level alerts (Pivot + manual AVWAP) — beep + visual flag when the latest close touches/crosses
 // a level. Multiple manual AVWAP anchors = multiple buyers' entry price/time, so a touch means price has come
 // back to someone's cost basis — useful to notice without eyeballing every line. EOD data, so this fires once
 // per new day's data, not live/real-time. ----------
 let ALERT_AUDIO_ON = JSON.parse(localStorage.getItem('twv_rzst_alert_audio_v1') ?? 'true');
+let COMBO_MODE = JSON.parse(localStorage.getItem('twv_rzst_combo_v1') ?? 'false'); // off by default — extends the
+// hover tooltip with DC21−LTP diff, Chikou position, DPO value, OBV value, moving candle-by-candle
 const ALERTED_KEYS = new Set(); // sym+date+level → dedupe so re-rendering the same scrip/day doesn't re-beep
 function playAlertBeep(){
   if(!ALERT_AUDIO_ON) return;
@@ -276,16 +355,22 @@ function checkPriceLevelAlerts(sym, bars, pivotSegments, avwapManualList){
 
 let RAYS = JSON.parse(localStorage.getItem(RAY_KEY) || '{}');
 let TRENDLINES = JSON.parse(localStorage.getItem(TREND_KEY) || '{}');
+let MANUAL_ABCD = JSON.parse(localStorage.getItem(MANUAL_ABCD_KEY) || '{}'); // client/customer-drawn ABC/ABCD patterns, per scrip array
 let BOXES = JSON.parse(localStorage.getItem(BOX_KEY) || '{}');
 let AVWAPS = JSON.parse(localStorage.getItem(AVWAP_KEY) || '{}'); // manually-placed AVWAP anchors, max 5 per scrip (FIFO)
 let currentScrip = null;
 let CURRENT_DIM_STATE = null; // snapshot of this scrip's live Phase/Zone/Strength/KAMA-Hull reads, for the tap-to-explain card panel
-let activeTool = null; // null | 'ray' | 'trend' | 'box' | 'avwap'
+let activeTool = null; // null | 'ray' | 'trend' | 'box' | 'avwap' | 'abcd'
 let trendPending = null; // {globalIdx, price, date} — first point of an in-progress trend line
 let boxPending = null; // {globalIdx, price, date} — first corner of an in-progress box
+let abcdPending = []; // in-progress manual ABC/ABCD clicks — accumulates up to 4 points (A,B,C,D in click order)
 let chartGeom = null;
+let LAST_BAR_COUNT = {}; // sym -> bar count as of last render(), used to detect "new bar just arrived" for the live-scroll animation
+let CHART_SCROLL_RAF = null; // in-flight requestAnimationFrame id, so a fast double-apply cancels the previous run cleanly
+let FORCE_SCROLL_ANIM = false; // set true right before selecting a scrip so its first chart paint also slides in
 function saveRays(){ localStorage.setItem(RAY_KEY, JSON.stringify(RAYS)); }
 function saveTrendLines(){ localStorage.setItem(TREND_KEY, JSON.stringify(TRENDLINES)); }
+function saveManualAbcd(){ localStorage.setItem(MANUAL_ABCD_KEY, JSON.stringify(MANUAL_ABCD)); }
 function saveBoxes(){ localStorage.setItem(BOX_KEY, JSON.stringify(BOXES)); }
 function saveAvwaps(){ localStorage.setItem(AVWAP_KEY, JSON.stringify(AVWAPS)); }
 
@@ -393,11 +478,13 @@ function mergeScrip(sym, rows){
 }
 function saveLib(){ localStorage.setItem(STORE_KEY, JSON.stringify(LIB)); }
 
-function selectScrip(s){ currentScrip = s; renderAll(); render(s); }
+function selectScrip(s){ currentScrip = s; FORCE_SCROLL_ANIM = true; renderAll(); render(s); }
 window.selectScrip = selectScrip;
 
 // ---------- screener (bulk multi-scrip view + filters) ----------
 let sortCol = 'sym', sortDir = 1;
+let SELECTED_SYMS = new Set(); // scrips checked in the screener for bulk group-assign
+let LAST_SCREENER_SYMS = []; // syms in the currently-rendered (filtered) screener rows, for "select all"
 function computeAllScrips(){
   return Object.keys(LIB).filter(s => LIB[s].length >= 15).map(sym=>{
     const bars = LIB[sym];
@@ -448,7 +535,10 @@ function renderScreener(){
     if(av<bv) return -1*sortDir; if(av>bv) return 1*sortDir; return 0;
   });
   document.getElementById('screenerCount').textContent = rows.length+' of '+all.length+' scrips';
+  LAST_SCREENER_SYMS = rows.map(r=>r.sym);
+  const allSelected = LAST_SCREENER_SYMS.length>0 && LAST_SCREENER_SYMS.every(s=>SELECTED_SYMS.has(s));
   const head = `<thead><tr>
+    <th style="width:24px;"><input type="checkbox" id="selectAllChk" ${allSelected?'checked':''} onclick="event.stopPropagation()" onchange="toggleSelectAllScreener(this.checked)"></th>
     <th onclick="setSort('sym')">SCRIP</th>
     <th>GROUP</th>
     <th onclick="setSort('close')">CLOSE</th>
@@ -471,6 +561,7 @@ function renderScreener(){
       ${SECTOR_GROUPS.map(g=>`<option value="${g}" ${curSector===g?'selected':''}>${g}</option>`).join('')}
     </select>`;
     return `<tr class="${r.sym===currentScrip?'sel':''}" onclick="selectScrip('${r.sym}')">
+      <td onclick="event.stopPropagation()"><input type="checkbox" ${SELECTED_SYMS.has(r.sym)?'checked':''} onchange="toggleScripSelect('${r.sym}', this.checked)"></td>
       <td class="scripcell mono">${r.sym}</td>
       <td>${sectorSelect}</td>
       <td class="mono">${r.last.c.toFixed(2)}</td>
@@ -484,7 +575,53 @@ function renderScreener(){
     </tr>`;
   }).join('')+'</tbody>';
   document.getElementById('screenerTable').innerHTML = head+body;
+  updateBulkGroupBar();
+  updateGroupsLostBanner();
 }
+let groupsLostBannerDismissed = false;
+function updateGroupsLostBanner(){
+  const banner = document.getElementById('groupsLostBanner');
+  if(!banner) return;
+  const hasScrips = Object.keys(LIB).length > 0;
+  const hasAnyGroupTag = Object.keys(SECTOR_MAP).length > 0;
+  banner.style.display = (hasScrips && !hasAnyGroupTag && !groupsLostBannerDismissed) ? 'flex' : 'none';
+}
+document.getElementById('dismissGroupsLostBanner').addEventListener('click', ()=>{
+  groupsLostBannerDismissed = true;
+  updateGroupsLostBanner();
+});
+function toggleScripSelect(sym, checked){
+  if(checked) SELECTED_SYMS.add(sym); else SELECTED_SYMS.delete(sym);
+  updateBulkGroupBar();
+  const selectAllChk = document.getElementById('selectAllChk');
+  if(selectAllChk) selectAllChk.checked = LAST_SCREENER_SYMS.length>0 && LAST_SCREENER_SYMS.every(s=>SELECTED_SYMS.has(s));
+}
+window.toggleScripSelect = toggleScripSelect;
+function toggleSelectAllScreener(checked){
+  LAST_SCREENER_SYMS.forEach(s => checked ? SELECTED_SYMS.add(s) : SELECTED_SYMS.delete(s));
+  renderScreener();
+}
+window.toggleSelectAllScreener = toggleSelectAllScreener;
+function updateBulkGroupBar(){
+  const bar = document.getElementById('bulkGroupBar');
+  const countEl = document.getElementById('bulkGroupCount');
+  if(!bar || !countEl) return;
+  if(SELECTED_SYMS.size===0){ bar.style.display='none'; return; }
+  bar.style.display='flex';
+  countEl.textContent = SELECTED_SYMS.size+' scrip(s) selected';
+}
+document.getElementById('bulkGroupApplyBtn').addEventListener('click', ()=>{
+  const sector = document.getElementById('bulkGroupSelect').value;
+  if(SELECTED_SYMS.size===0) return;
+  SELECTED_SYMS.forEach(sym => { if(sector) SECTOR_MAP[sym] = sector; else delete SECTOR_MAP[sym]; });
+  saveSectorMap();
+  SELECTED_SYMS.clear();
+  renderScreener();
+});
+document.getElementById('bulkGroupClearBtn').addEventListener('click', ()=>{
+  SELECTED_SYMS.clear();
+  renderScreener();
+});
 function setScripSector(sym, sector){
   if(sector) SECTOR_MAP[sym] = sector; else delete SECTOR_MAP[sym];
   saveSectorMap();
@@ -500,6 +637,8 @@ window.setSort = setSort;
   const sel = document.getElementById('fGroup');
   sel.innerHTML = '<option value="all">All</option><option value="Unassigned">Unassigned</option>' +
     SECTOR_GROUPS.map(g=>`<option value="${g}">${g}</option>`).join('');
+  const bulkSel = document.getElementById('bulkGroupSelect');
+  bulkSel.innerHTML = '<option value="">Unassigned</option>' + SECTOR_GROUPS.map(g=>`<option value="${g}">${g}</option>`).join('');
 })();
 document.getElementById('removeGroupBtn').addEventListener('click', ()=>{
   const g = document.getElementById('fGroup').value;
@@ -535,9 +674,9 @@ function wma(vals, period){
   const out = new Array(vals.length).fill(null);
   let denom = period*(period+1)/2;
   for(let i=period-1;i<vals.length;i++){
-    let sum=0;
-    for(let j=0;j<period;j++) sum += vals[i-period+1+j]*(j+1);
-    out[i] = sum/denom;
+    let sum=0, bad=false;
+    for(let j=0;j<period;j++){ const v = vals[i-period+1+j]; if(v==null){ bad=true; break; } sum += v*(j+1); }
+    out[i] = bad ? null : sum/denom;
   }
   return out;
 }
@@ -590,6 +729,26 @@ function rsi(vals, period=14){
     avgG = (avgG*(period-1)+g)/period;
     avgL = (avgL*(period-1)+l)/period;
     out[i] = 100 - (100/(1+ (avgL===0?100:avgG/avgL)));
+  }
+  return out;
+}
+// Wilder's raw RS (avg gain / avg loss) — the ratio RSI itself is derived from, before the 100-100/(1+RS)
+// squash into a 0-100 band. Unbounded above 0; RS=1 is the same balance point as RSI=50.
+function rawRS(vals, period=14){
+  const out = new Array(vals.length).fill(null);
+  let gains=0, losses=0;
+  for(let i=1;i<=period && i<vals.length;i++){
+    const diff = vals[i]-vals[i-1];
+    if(diff>=0) gains+=diff; else losses-=diff;
+  }
+  let avgG=gains/period, avgL=losses/period;
+  out[period] = avgL===0 ? (avgG===0?1:100) : avgG/avgL;
+  for(let i=period+1;i<vals.length;i++){
+    const diff = vals[i]-vals[i-1];
+    const g = diff>0?diff:0, l = diff<0?-diff:0;
+    avgG = (avgG*(period-1)+g)/period;
+    avgL = (avgL*(period-1)+l)/period;
+    out[i] = avgL===0 ? (avgG===0?1:100) : avgG/avgL;
   }
   return out;
 }
@@ -789,6 +948,51 @@ function chikouSpan(closes, period=21){
   const out = new Array(n).fill(null);
   for(let i=0; i+period<n; i++) out[i] = closes[i+period];
   return out;
+}
+// Auto-detect the most recent AB=CD harmonic zigzag from confirmed fractal-9 swing points.
+// Walks backward from the newest confirmed swing, picking strictly-alternating H/L points until it has
+// four (D newest .. A oldest), then reports the BC retracement-of-AB ratio and CD extension-of-BC ratio —
+// same two numbers a manual harmonic drawing tool (like Chukul) labels on the BC and CD legs.
+// ABC = 180° (3-point structure), ABCD/parallelogram = 360° (mirrors a circle / one year on the Gann wheel).
+// Price never truly moves vertical (90°) — a genuine sharp impulse shows up as roughly 45°-75° on this
+// ATR-normalized scale (price move measured in ATR units, not raw price, so it stays meaningful across
+// scrips/timeframes instead of being a raw screen-pixel angle). Below 30° = no clear direction (range).
+function legAngleDeg(barSpan, priceChange, atr){
+  if(!atr || atr<=0 || barSpan<=0) return null;
+  const normMove = Math.abs(priceChange)/atr; // move size in ATR units
+  return Math.atan2(normMove, barSpan) * 180/Math.PI;
+}
+// Per the stated rule: Bull = angle ≥45° with price rising; Bear = angle in the 30°-45° band with price
+// falling; anything under 30° (either direction) = RANGE — no clear directional read from angle alone.
+function classifyLegAngle(deg, priceUp){
+  if(deg==null) return {label:'—', deg:null};
+  if(deg>=45) return {label: priceUp ? 'BULL (sharp, ≥45°)' : 'BEAR (sharp, ≥45°)', deg};
+  if(deg>=30) return {label: priceUp ? 'BULL (moderate, 30-45°)' : 'BEAR (moderate, 30-45°)', deg};
+  return {label:'RANGE (flat, <30° — no clear direction)', deg};
+}
+function detectLastABCD(bars, highF, lowF, atrArr){
+  const events = [];
+  for(let i=0;i<bars.length;i++){
+    if(highF[i]) events.push({idx:i, type:'H', price:bars[i].h, date:bars[i].date});
+    if(lowF[i]) events.push({idx:i, type:'L', price:bars[i].l, date:bars[i].date});
+  }
+  events.sort((a,b)=>a.idx-b.idx);
+  if(events.length<4) return null;
+  const picked = [events[events.length-1]];
+  for(let i=events.length-2;i>=0 && picked.length<4;i--){
+    if(events[i].type !== picked[picked.length-1].type) picked.push(events[i]);
+  }
+  if(picked.length<4) return null;
+  const [D,C,B,A] = picked; // most-recent-first
+  const AB = Math.abs(B.price-A.price), BC = Math.abs(C.price-B.price), CD = Math.abs(D.price-C.price);
+  if(AB===0 || BC===0) return null;
+  const abcdRatio = CD/AB; // the equality check the pattern is named for — ideal ~0.786-1.27 (CD leg ≈ AB leg)
+  const valid = abcdRatio>=0.786 && abcdRatio<=1.27;
+  const atrAtB = atrArr && atrArr[B.idx]!=null ? atrArr[B.idx] : null;
+  const atrAtD = atrArr && atrArr[D.idx]!=null ? atrArr[D.idx] : null;
+  const abAngle = classifyLegAngle(legAngleDeg(Math.abs(B.idx-A.idx), B.price-A.price, atrAtB), B.price>A.price);
+  const cdAngle = classifyLegAngle(legAngleDeg(Math.abs(D.idx-C.idx), D.price-C.price, atrAtD), D.price>C.price);
+  return { A, B, C, D, bcRatio: BC/AB, cdRatio: CD/BC, abcdRatio, valid, bullish: D.type==='L', abAngle, cdAngle };
 }
 // Price − MA21 gap, per bar — the raw +/- lag between LTP and the indicator (not normalized like DPO).
 function maGap(closes, maArr){
@@ -1057,7 +1261,18 @@ function computeZone(bars, wmaArr, ci, highF, lowF){
   for(let i=baseEnd+1;i<n;i++){ if(bars[i].l<=baseHi && bars[i].h>=baseLo){ retested=true; break; } }
   const age = retested ? 'AGED (retested)' : 'FRESH (untested)';
 
-  return {type, status, age, detail:`Base spans ${bars[baseStart].date} → ${bars[baseEnd].date}, range ${baseLo.toFixed(2)}–${baseHi.toFixed(2)}.`};
+  // Range break — has the latest close cleared outside the previous base's high/low since the base ended?
+  // "rangle ko previous range break" — this is the plain Rs-based check for when angle alone gives no
+  // direction (flat/range zone): price closing beyond baseHi/baseLo confirms the range itself broke.
+  let rangeBreak = null;
+  const lastClose = bars[n-1].c;
+  if(legOutConfirmed){
+    if(lastClose > baseHi) rangeBreak = {dir:'BULLISH BREAK', level: baseHi, detail:`Close ${lastClose.toFixed(2)} above base high ${baseHi.toFixed(2)}`};
+    else if(lastClose < baseLo) rangeBreak = {dir:'BEARISH BREAK', level: baseLo, detail:`Close ${lastClose.toFixed(2)} below base low ${baseLo.toFixed(2)}`};
+    else rangeBreak = {dir:'INSIDE RANGE', level:null, detail:`Close ${lastClose.toFixed(2)} still within ${baseLo.toFixed(2)}–${baseHi.toFixed(2)}`};
+  }
+
+  return {type, status, age, rangeBreak, baseHi, baseLo, detail:`Base spans ${bars[baseStart].date} → ${bars[baseEnd].date}, range ${baseLo.toFixed(2)}–${baseHi.toFixed(2)}.`};
 }
 
 // ---------- Strength engine ----------
@@ -1123,6 +1338,15 @@ function render(sym){
     document.getElementById('mainArea').innerHTML = `<div class="empty" style="grid-column:1/-1;">${sym}: only ${bars?bars.length:0} bars loaded — need at least ~30 for reliable phase/zone reads.</div>`;
     return;
   }
+  // did new bar(s) land for this scrip since the last time we rendered it, or did the user just touch this
+  // scrip's row (screener click)? either way the chart animates a right-to-left live-scroll slide-in instead
+  // of just snapping to the new window (see animateChartScroll). incidental re-renders (ray/box/layer toggles
+  // that call render() again for the SAME already-open scrip) stay instant — only these two triggers animate.
+  const prevBarCount = LAST_BAR_COUNT[sym];
+  const isNewBar = prevBarCount !== undefined && bars.length > prevBarCount;
+  const doScrollAnim = isNewBar || FORCE_SCROLL_ANIM;
+  FORCE_SCROLL_ANIM = false;
+  LAST_BAR_COUNT[sym] = bars.length;
   const closes = bars.map(b=>b.c);
   const wmaArr = wma(closes, 21);
   const atrArr = atrWilder(bars, 21);
@@ -1136,6 +1360,7 @@ function render(sym){
 
   // 6-layer chart pack (visual overlays only — does not feed the phase/zone/strength dimensions above)
   const chartExtra = {
+    atrArr,
     dcMidArr: donchianMid(bars, 21),
     volArr: volStopWilder(bars, atrArr, 1),
     dpoArr: dpo(closes, 21),
@@ -1160,7 +1385,11 @@ function render(sym){
     ma180Arr: sma(closes, 180),
     ma21Arr: sma(closes, 21),
     chikouArr: chikouSpan(closes, 21),
-    maGapArr: maGap(closes, sma(closes, 21))
+    maGapArr: maGap(closes, sma(closes, 21)),
+    rsiArr: rsiArr,
+    rsiWmaArr: wma(rsiArr, 9),
+    rsArr: rawRS(closes, 14),
+    abcd: detectLastABCD(bars, highF, lowF, atrArr)
   };
   chartExtra.kamaHullArr = kamaHullClassify(bars, chartExtra.kamaArr, chartExtra.hullArr, chartExtra.pafFlags);
   const khLast = chartExtra.kamaHullArr[chartExtra.kamaHullArr.length-1];
@@ -1218,6 +1447,10 @@ function render(sym){
         <button id="trendToggleBtn" class="mono">＋ Trend Line</button>
         <button id="boxToggleBtn" class="mono">＋ Box</button>
         <button id="avwapToggleBtn" class="mono">＋ AVWAP</button>
+        <button id="abcdToggleBtn" class="mono">＋ ABCD</button>
+        <label class="mono" style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--dim);cursor:pointer;padding:0 4px;">
+          <input type="checkbox" id="comboModeToggle" ${COMBO_MODE?'checked':''}> 🔀 Combo Readout
+        </label>
         <span id="rayHint" style="font-size:11px;color:var(--dim);">Pick a tool, then click the chart.</span>
       </div>
       <details id="indicatorGroup" class="mono" style="margin-bottom:8px;border:1px solid var(--line);border-radius:8px;padding:6px 10px;">
@@ -1225,31 +1458,34 @@ function render(sym){
         <div style="padding-top:8px;">
           <div style="font-size:10px;color:#4a5b78;letter-spacing:.5px;margin-bottom:4px;">CHART PACK</div>
           <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;flex-wrap:wrap;font-size:11px;color:var(--dim);">
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="piv" ${LAYER_VIS.piv?'checked':''}> <span style="color:#B8C4D9;">Pivots(W)</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="wma" ${LAYER_VIS.wma?'checked':''}> <span style="color:#F5A524;">WMA21</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="vol" ${LAYER_VIS.vol?'checked':''}> <span style="color:#E14B4B;">Vol-Stop</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="dc" ${LAYER_VIS.dc?'checked':''}> <span style="color:#4C8DFF;">DC21 Mid</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="dpo" ${LAYER_VIS.dpo?'checked':''}> <span style="color:#26C281;">DPO21</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="chikou" ${LAYER_VIS.chikou?'checked':''}> <span style="color:#E7EEF7;">Chikou Span 21</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="magap" ${LAYER_VIS.magap?'checked':''}> <span style="color:#F5A524;">Price−MA21 Gap</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="macd" ${LAYER_VIS.macd?'checked':''}> <span style="color:#E7EEF7;">MACD 5-8-3</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="mfi" ${LAYER_VIS.mfi?'checked':''}> <span style="color:#B084F5;">MFI 14</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="ma120" ${LAYER_VIS.ma120?'checked':''}> <span style="color:#D4A017;">MA120</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="ma180" ${LAYER_VIS.ma180?'checked':''}> <span style="color:#6A5ACD;">MA180</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="piv" ${LAYER_VIS.piv?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#B8C4D9;">${LICENSED?'':'🔒 '}Pivots(W)</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="wma" ${LAYER_VIS.wma?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#F5A524;">${LICENSED?'':'🔒 '}WMA21</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="vol" ${LAYER_VIS.vol?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#E14B4B;">${LICENSED?'':'🔒 '}Vol-Stop</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="dc" ${LAYER_VIS.dc?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#4C8DFF;">${LICENSED?'':'🔒 '}DC21 Mid</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="dpo" ${LAYER_VIS.dpo?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#26C281;">${LICENSED?'':'🔒 '}DPO21</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="chikou" ${LAYER_VIS.chikou?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#E7EEF7;">${LICENSED?'':'🔒 '}Chikou Span 21</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="magap" ${LAYER_VIS.magap?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#F5A524;">${LICENSED?'':'🔒 '}Price−MA21 Gap</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="macd" ${LAYER_VIS.macd?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#E7EEF7;">${LICENSED?'':'🔒 '}MACD 5-8-3</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="mfi" ${LAYER_VIS.mfi?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#B084F5;">${LICENSED?'':'🔒 '}MFI 14</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="rsiwma" ${LAYER_VIS.rsiwma?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#E8C547;">${LICENSED?'':'🔒 '}RSI 14 + WMA9 Cross</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="rs" ${LAYER_VIS.rs?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#26C281;">${LICENSED?'':'🔒 '}RS 14 (raw)</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="abcd" ${LAYER_VIS.abcd?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#E7EEF7;">${LICENSED?'':'🔒 '}ABCD Pattern (auto)</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="ma120" ${LAYER_VIS.ma120?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#D4A017;">${LICENSED?'':'🔒 '}MA120</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="ma180" ${LAYER_VIS.ma180?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#6A5ACD;">${LICENSED?'':'🔒 '}MA180</span></label>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="ma21c" ${LAYER_VIS.ma21c?'checked':''}> <span style="color:#E7EEF7;">MA21 (trend color)</span></label>
           </div>
           <div style="font-size:10px;color:#4a5b78;letter-spacing:.5px;margin-bottom:4px;">EXTRA INDICATORS</div>
           <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:11px;color:var(--dim);">
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="kama" ${LAYER_VIS.kama?'checked':''}> <span style="color:#2EC4B6;">KAMA(MAA-13)</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="hull" ${LAYER_VIS.hull?'checked':''}> <span style="color:#00D4FF;">Hull-13</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="cks" ${LAYER_VIS.cks?'checked':''}> <span style="color:#FFB454;">CKS</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="stoch" ${LAYER_VIS.stoch?'checked':''}> <span style="color:#5AD1FF;">Stochastic (Time)</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="paf" ${LAYER_VIS.paf?'checked':''}> <span style="color:#9EFF6E;">Price Action Filter</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="obv" ${LAYER_VIS.obv?'checked':''}> <span style="color:#E8C547;">OBV + WMA9</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="khsig" ${LAYER_VIS.khsig?'checked':''}> <span style="color:#FFFFFF;">KAMA/Hull Signal</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="emacross" ${LAYER_VIS.emacross?'checked':''}> <span style="color:#26C281;">EMA Cross (19/39)</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="turbo" ${LAYER_VIS.turbo?'checked':''}> <span style="background:linear-gradient(90deg,#F5D033,#B23BFF);-webkit-background-clip:text;background-clip:text;color:transparent;">Turbo Vibes</span></label>
-            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="avwap" ${LAYER_VIS.avwap?'checked':''}> <span style="color:#FF3D81;">Auto AVWAP (swing H/L)</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="kama" ${LAYER_VIS.kama?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#2EC4B6;">${LICENSED?'':'🔒 '}KAMA(MAA-13)</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="hull" ${LAYER_VIS.hull?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#00D4FF;">${LICENSED?'':'🔒 '}Hull-13</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="cks" ${LAYER_VIS.cks?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#FFB454;">${LICENSED?'':'🔒 '}CKS</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="stoch" ${LAYER_VIS.stoch?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#5AD1FF;">${LICENSED?'':'🔒 '}Stochastic (Time)</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="paf" ${LAYER_VIS.paf?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#9EFF6E;">${LICENSED?'':'🔒 '}Price Action Filter</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="obv" ${LAYER_VIS.obv?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#E8C547;">${LICENSED?'':'🔒 '}OBV + WMA9</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="khsig" ${LAYER_VIS.khsig?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#FFFFFF;">${LICENSED?'':'🔒 '}KAMA/Hull Signal</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="emacross" ${LAYER_VIS.emacross?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#26C281;">${LICENSED?'':'🔒 '}EMA Cross (19/39)</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="turbo" ${LAYER_VIS.turbo?'checked':''} ${LICENSED?'':'disabled'}> <span style="background:linear-gradient(90deg,#F5D033,#B23BFF);-webkit-background-clip:text;background-clip:text;color:transparent;">${LICENSED?'':'🔒 '}Turbo Vibes</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="avwap" ${LAYER_VIS.avwap?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#FF3D81;">${LICENSED?'':'🔒 '}Auto AVWAP (swing H/L)</span></label>
           </div>
         </div>
       </details>
@@ -1264,6 +1500,7 @@ function render(sym){
       <div id="trendList" style="margin-top:6px;"></div>
       <div id="boxList" style="margin-top:6px;"></div>
       <div id="avwapList" style="margin-top:6px;"></div>
+      <div id="abcdList" style="margin-top:6px;"></div>
       </div>
     </div>
 
@@ -1277,6 +1514,7 @@ function render(sym){
         <h3>ZONE — RBR / DBR / RBD / DBD</h3>
         <div class="val">${zone.type}</div>
         <div class="detail">${zone.detail}</div>
+        ${zone.rangeBreak ? `<div class="detail" style="margin-top:4px;color:${zone.rangeBreak.dir==='BULLISH BREAK'?'var(--green)':zone.rangeBreak.dir==='BEARISH BREAK'?'var(--red)':'#8fa8c0'};font-weight:600;">${zone.rangeBreak.dir} — ${zone.rangeBreak.detail}</div>` : ''}
       </div>
       <div class="dim" style="cursor:pointer;" onclick="showDimInfo('strength')">
         <h3>STRENGTH — ATR EXPANSION</h3>
@@ -1302,7 +1540,11 @@ function render(sym){
     </div>
   `;
 
-  drawChart(bars, wmaArr, highF, lowF, sym, chartExtra);
+  if(doScrollAnim){
+    animateChartScroll(bars, wmaArr, highF, lowF, sym, chartExtra);
+  } else {
+    drawChart(bars, wmaArr, highF, lowF, sym, chartExtra);
+  }
   setupRayUI(sym);
   setupLayerToggles(bars, wmaArr, highF, lowF, sym, chartExtra);
   const alertToggle = document.getElementById('alertAudioToggle');
@@ -1393,48 +1635,60 @@ function setupRayUI(sym){
   const trendBtn = document.getElementById('trendToggleBtn');
   const boxBtn = document.getElementById('boxToggleBtn');
   const avwapBtn = document.getElementById('avwapToggleBtn');
+  const abcdBtn = document.getElementById('abcdToggleBtn');
   const hint = document.getElementById('rayHint');
-  activeTool = null; trendPending = null; boxPending = null;
+  activeTool = null; trendPending = null; boxPending = null; abcdPending = [];
   rayBtn.textContent = '＋ Draw Ray';
   trendBtn.textContent = '＋ Trend Line';
   boxBtn.textContent = '＋ Box';
   avwapBtn.textContent = '＋ AVWAP';
+  abcdBtn.textContent = '＋ ABCD';
   hint.textContent = 'Pick a tool, then click the chart.';
   const resetLabels = ()=>{
     rayBtn.textContent = activeTool==='ray' ? '✕ Cancel' : '＋ Draw Ray';
     trendBtn.textContent = activeTool==='trend' ? '✕ Cancel' : '＋ Trend Line';
     boxBtn.textContent = activeTool==='box' ? '✕ Cancel' : '＋ Box';
     avwapBtn.textContent = activeTool==='avwap' ? '✕ Cancel' : '＋ AVWAP';
+    abcdBtn.textContent = activeTool==='abcd' ? '✕ Cancel' : '＋ ABCD';
     document.getElementById('chartCanvas').style.cursor = activeTool ? 'crosshair' : 'default';
   };
   rayBtn.onclick = ()=>{
     activeTool = activeTool==='ray' ? null : 'ray';
-    trendPending = null; boxPending = null;
+    trendPending = null; boxPending = null; abcdPending = [];
     hint.textContent = activeTool==='ray' ? 'Click a point on the chart to drop the ray.' : 'Pick a tool, then click the chart.';
     resetLabels();
   };
   trendBtn.onclick = ()=>{
     activeTool = activeTool==='trend' ? null : 'trend';
-    trendPending = null; boxPending = null;
+    trendPending = null; boxPending = null; abcdPending = [];
     hint.textContent = activeTool==='trend' ? 'Click the start point, then the end point.' : 'Pick a tool, then click the chart.';
     resetLabels();
   };
   boxBtn.onclick = ()=>{
     activeTool = activeTool==='box' ? null : 'box';
-    trendPending = null; boxPending = null;
+    trendPending = null; boxPending = null; abcdPending = [];
     hint.textContent = activeTool==='box' ? 'Click one corner, then the opposite corner.' : 'Pick a tool, then click the chart.';
     resetLabels();
   };
   avwapBtn.onclick = ()=>{
     activeTool = activeTool==='avwap' ? null : 'avwap';
-    trendPending = null; boxPending = null;
+    trendPending = null; boxPending = null; abcdPending = [];
     hint.textContent = activeTool==='avwap' ? 'Click near a candle\'s high (top half) or low (bottom half) to anchor an AVWAP there — max 5, oldest drops off.' : 'Pick a tool, then click the chart.';
+    resetLabels();
+  };
+  abcdBtn.onclick = ()=>{
+    activeTool = activeTool==='abcd' ? null : 'abcd';
+    trendPending = null; boxPending = null; abcdPending = [];
+    hint.textContent = activeTool==='abcd' ? 'Click A, then B, then C, then D (4 points) — for you/the client to draw it manually first; the auto-detected pattern keeps running alongside it either way.' : 'Pick a tool, then click the chart.';
     resetLabels();
   };
   renderRayList(sym);
   renderTrendList(sym);
   renderBoxList(sym);
   renderAvwapList(sym);
+  renderManualAbcdList(sym);
+  const comboToggle = document.getElementById('comboModeToggle');
+  if(comboToggle) comboToggle.onchange = ()=>{ COMBO_MODE = comboToggle.checked; localStorage.setItem('twv_rzst_combo_v1', JSON.stringify(COMBO_MODE)); };
 }
 
 function renderAvwapList(sym){
@@ -1462,6 +1716,47 @@ function removeAvwap(sym, idx){
   render(sym);
 }
 window.removeAvwap = removeAvwap;
+
+// stats for a manually-drawn (client/customer-placed) ABC or ABCD pattern — same math as the auto-detected
+// one (legAngleDeg/classifyLegAngle, AB=CD equality) so both read the same way once the client is done trying
+// it manually and switches over to the auto layer.
+function manualAbcdStats(m, atrArr){
+  const A=m[0], B=m[1], C=m[2], D=m[3];
+  const AB = Math.abs(B.price-A.price), BC = Math.abs(C.price-B.price);
+  const atrAtB = atrArr && atrArr[B.globalIdx]!=null ? atrArr[B.globalIdx] : null;
+  const abAngle = classifyLegAngle(legAngleDeg(Math.abs(B.globalIdx-A.globalIdx), B.price-A.price, atrAtB), B.price>A.price);
+  let cdAngle = {label:'—', deg:null}, abcdRatio=null, valid=false;
+  if(D){
+    const CD = Math.abs(D.price-C.price);
+    abcdRatio = AB===0 ? null : CD/AB;
+    valid = abcdRatio!=null && abcdRatio>=0.786 && abcdRatio<=1.27;
+    const atrAtD = atrArr && atrArr[D.globalIdx]!=null ? atrArr[D.globalIdx] : null;
+    cdAngle = classifyLegAngle(legAngleDeg(Math.abs(D.globalIdx-C.globalIdx), D.price-C.price, atrAtD), D.price>C.price);
+  }
+  return {AB, BC, abAngle, cdAngle, abcdRatio, valid, bullish: D ? D.price<C.price : C.price<B.price};
+}
+function renderManualAbcdList(sym){
+  const list = MANUAL_ABCD[sym] || [];
+  const el = document.getElementById('abcdList');
+  if(!el) return;
+  if(!list.length){ el.innerHTML=''; return; }
+  const atrArr = atrWilder(LIB[sym]||[], 21);
+  el.innerHTML = '<div class="note" style="margin-top:0;">' + list.map((m,i)=>{
+    const s = manualAbcdStats(m, atrArr);
+    const kind = m.length===4 ? 'ABCD' : 'ABC';
+    const eq = m.length===4 && s.abcdRatio!=null ? ` · AB=CD ${s.abcdRatio.toFixed(3)}${s.valid?' ✓':''}` : '';
+    return `<span class="mono" style="display:inline-block;background:var(--panel2);border:1px solid var(--line);padding:3px 8px;border-radius:12px;margin:2px 4px 2px 0;">
+      ${kind} (manual) · AB ${s.abAngle.deg!=null?s.abAngle.deg.toFixed(0)+'°':'—'} ${s.abAngle.label.split(' ')[0]}${m.length===4?` · CD ${s.cdAngle.deg!=null?s.cdAngle.deg.toFixed(0)+'°':'—'} ${s.cdAngle.label.split(' ')[0]}`:''}${eq}
+      <span style="cursor:pointer;color:var(--red);margin-left:4px;" onclick="removeManualAbcd('${sym}',${i})">✕</span>
+    </span>`;
+  }).join('') + '</div>';
+}
+function removeManualAbcd(sym, idx){
+  MANUAL_ABCD[sym].splice(idx,1);
+  saveManualAbcd();
+  render(sym);
+}
+window.removeManualAbcd = removeManualAbcd;
 
 function renderRayList(sym){
   const rays = RAYS[sym] || [];
@@ -1586,7 +1881,7 @@ function exportBackup(){
   const payload = {
     version: 1,
     exportedAt: new Date().toISOString(),
-    LIB, RAYS, TRENDLINES, BOXES, AVWAPS, LAYER_VIS, SECTOR_MAP
+    LIB, RAYS, TRENDLINES, BOXES, AVWAPS, MANUAL_ABCD, LAYER_VIS, SECTOR_MAP
   };
   const blob = new Blob([JSON.stringify(payload)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -1606,6 +1901,7 @@ function importBackupFile(file){
       if(data.TRENDLINES){ TRENDLINES = Object.assign({}, TRENDLINES, data.TRENDLINES); saveTrendLines(); }
       if(data.BOXES){ BOXES = Object.assign({}, BOXES, data.BOXES); saveBoxes(); }
       if(data.AVWAPS){ AVWAPS = Object.assign({}, AVWAPS, data.AVWAPS); saveAvwaps(); }
+      if(data.MANUAL_ABCD){ MANUAL_ABCD = Object.assign({}, MANUAL_ABCD, data.MANUAL_ABCD); saveManualAbcd(); }
       if(data.LAYER_VIS){ LAYER_VIS = Object.assign({}, LAYER_VIS, data.LAYER_VIS); saveLayerVis(); }
       if(data.SECTOR_MAP){ SECTOR_MAP = Object.assign({}, SECTOR_MAP, data.SECTOR_MAP); saveSectorMap(); }
       alert(`Restore complete — ${scripCount} scrip(s) merged in.`);
@@ -1650,6 +1946,45 @@ function bakeAndDownload(){
   URL.revokeObjectURL(url);
 }
 document.getElementById('bakeBtn').addEventListener('click', bakeAndDownload);
+
+// ---------- License modal wiring ----------
+function updateLicenseBtn(){
+  const btn = document.getElementById('licenseBtn');
+  if(!btn) return;
+  btn.textContent = LICENSED ? '🔓 Unlocked' : '🔒 Locked';
+  btn.style.color = LICENSED ? '#26C281' : '';
+  btn.style.borderColor = LICENSED ? '#26C281' : '';
+}
+function openLicenseModal(){
+  const deviceId = getDeviceId();
+  document.getElementById('deviceIdField').value = deviceId;
+  document.getElementById('licenseStatusLine').textContent = LICENSED ? 'Status: unlocked on this device.' : 'Status: locked — free view shows MA21 only.';
+  const mailBody = encodeURIComponent(`Device ID: ${deviceId}\n\n(Sent from Reversal/Zone/Strength Terminal — please reply with my key.)`);
+  document.getElementById('requestKeyModalLink').href = `mailto:nirrpandey@gmail.com?subject=${encodeURIComponent('Reversal/Zone/Strength Terminal — Key Request')}&body=${mailBody}`;
+  document.getElementById('keyInputField').value='';
+  document.getElementById('keyActivateMsg').textContent='';
+  document.getElementById('licenseModal').style.display='flex';
+}
+document.getElementById('licenseBtn').addEventListener('click', openLicenseModal);
+document.getElementById('closeLicenseModalBtn').addEventListener('click', ()=>{ document.getElementById('licenseModal').style.display='none'; });
+document.getElementById('licenseModal').addEventListener('click', (e)=>{ if(e.target.id==='licenseModal') e.currentTarget.style.display='none'; });
+document.getElementById('copyDeviceIdBtn').addEventListener('click', async ()=>{
+  try{ await navigator.clipboard.writeText(getDeviceId()); const b=document.getElementById('copyDeviceIdBtn'); const old=b.textContent; b.textContent='Copied'; setTimeout(()=>b.textContent=old,1200); }catch(e){}
+});
+document.getElementById('activateKeyBtn').addEventListener('click', async ()=>{
+  const msg = document.getElementById('keyActivateMsg');
+  const val = document.getElementById('keyInputField').value;
+  msg.style.color='var(--dim)'; msg.textContent='Checking...';
+  const ok = await activateKey(val);
+  if(ok){
+    msg.style.color='#26C281'; msg.textContent='Unlocked — all indicators are available now.';
+    updateLicenseBtn();
+    if(currentScrip) render(currentScrip);
+    setTimeout(()=>{ document.getElementById('licenseModal').style.display='none'; }, 900);
+  } else {
+    msg.style.color='var(--red)'; msg.textContent='That key doesn\'t match this device. Double-check, or request a fresh key for this Device ID.';
+  }
+});
 
 function wrapText(ctx, text, x, y, maxWidth, lineHeight){
   const words = text.split(' ');
@@ -1698,7 +2033,7 @@ async function shareScrip(sym){
   wrapText(octx, phase.detail, 16, headerH+chartH+40, w-32, 14);
 
   octx.fillStyle = '#6E8199'; octx.font = '11px monospace';
-  octx.fillText('tradevibes.blogspot.com · nepsevibes.com · nirrpandey@gmail.com · Trade With Vibes', 16, totalH-14);
+  octx.fillText('tradevibes.blogspot.com · nepsevibes.com · info: nirrpandey@gmail.com, 9808660880 · Trade With Vibes', 16, totalH-14);
 
   out.toBlob(async (blob)=>{
     const file = new File([blob], sym+'_terminal.png', {type:'image/png'});
@@ -1711,15 +2046,43 @@ async function shareScrip(sym){
   });
 }
 
-function drawChart(bars, wmaArr, highF, lowF, sym, extra){
+// live-scroll: when a new bar has just landed for the scrip on screen, ease the whole chart in from the
+// right instead of snapping straight to the new window — the candles/lines/date-labels visually slide
+// right-to-left by one bar-width while the axis/grid/legends stay put (see animOffsetPx inside drawChart).
+function animateChartScroll(bars, wmaArr, highF, lowF, sym, extra){
+  if(CHART_SCROLL_RAF) cancelAnimationFrame(CHART_SCROLL_RAF);
+  const canvas = document.getElementById('chartCanvas');
+  if(!canvas){ drawChart(bars, wmaArr, highF, lowF, sym, extra); return; }
+  const N = Math.min(bars.length, 220);
+  const plotW = (canvas.clientWidth || 800) - 50 - 16; // padL/padR mirrored from drawChart
+  const barWidthPx = plotW/(N-1);
+  const DURATION = 280; // ms — quick enough to not feel laggy, slow enough to read as motion
+  const ease = t => 1-Math.pow(1-t,3); // easeOutCubic
+  const t0 = performance.now();
+  const step = (now)=>{
+    const t = Math.min(1, (now-t0)/DURATION);
+    const offsetPx = barWidthPx*(1-ease(t));
+    drawChart(bars, wmaArr, highF, lowF, sym, extra, offsetPx);
+    if(t < 1){
+      CHART_SCROLL_RAF = requestAnimationFrame(step);
+    } else {
+      CHART_SCROLL_RAF = null;
+      drawChart(bars, wmaArr, highF, lowF, sym, extra, 0); // settle exactly at rest so chartGeom/click math lines up
+    }
+  };
+  CHART_SCROLL_RAF = requestAnimationFrame(step);
+}
+
+function drawChart(bars, wmaArr, highF, lowF, sym, extra, animOffsetPx){
   extra = extra || {};
+  animOffsetPx = animOffsetPx || 0; // live-scroll animation: whole chart is nudged right by this many px then eased to 0
   const canvas = document.getElementById('chartCanvas');
   const dpr = window.devicePixelRatio || 1;
   const cssW = canvas.clientWidth || 800;
 
   // panel layout is computed first — subpanels only take space when their checkbox is ON
   const mainTop=46, mainH=292;
-  const panelDefs = [ {key:'dpo',h:62}, {key:'macd',h:86}, {key:'mfi',h:62}, {key:'stoch',h:62}, {key:'obv',h:62}, {key:'magap',h:62} ];
+  const panelDefs = [ {key:'dpo',h:62}, {key:'macd',h:86}, {key:'mfi',h:62}, {key:'stoch',h:62}, {key:'obv',h:62}, {key:'magap',h:62}, {key:'rsiwma',h:62}, {key:'rs',h:62} ];
   const panelTop = {};
   let curBottom = mainTop+mainH;
   panelDefs.forEach(pd=>{
@@ -1747,6 +2110,9 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra){
   const signalSlice = (extra.macdRes ? extra.macdRes.signalLine : []).slice(off);
   const histSlice = (extra.macdRes ? extra.macdRes.hist : []).slice(off);
   const mfiSlice = (extra.mfiArr||[]).slice(off);
+  const rsiSlice = (extra.rsiArr||[]).slice(off);
+  const rsiWmaSlice = (extra.rsiWmaArr||[]).slice(off);
+  const rsSlice = (extra.rsArr||[]).slice(off);
   const ma120Slice = (extra.ma120Arr||[]).slice(off);
   const ma180Slice = (extra.ma180Arr||[]).slice(off);
   const obvSlice = (extra.obvArr||[]).slice(off);
@@ -1787,10 +2153,10 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra){
 
   // panel geometry already computed above (panelTop) — just alias here
   const padL=50, padR=16;
-  const dpoTop=panelTop.dpo, dpoH=62, macdTop=panelTop.macd, macdH=86, mfiTop=panelTop.mfi, mfiH=62, stochTop=panelTop.stoch, stochH=62, obvTop=panelTop.obv, obvH=62, magapTop=panelTop.magap, magapH=62;
+  const dpoTop=panelTop.dpo, dpoH=62, macdTop=panelTop.macd, macdH=86, mfiTop=panelTop.mfi, mfiH=62, stochTop=panelTop.stoch, stochH=62, obvTop=panelTop.obv, obvH=62, magapTop=panelTop.magap, magapH=62, rsiwmaTop=panelTop.rsiwma, rsiwmaH=62, rsTop=panelTop.rs, rsH=62;
   const padT=mainTop, plotH=mainH; // kept as padT/plotH — rays/trend/box tools and click handlers key off these
   const plotW = cssW-padL-padR;
-  const x = i => padL + (i/(N-1))*plotW;
+  const x = i => padL + (i/(N-1))*plotW + animOffsetPx;
   const y = p => padT + (1-(p-lo)/(hi-lo))*plotH;
   const lineAngle = (slice, lookback=20)=>{
     let iEnd = slice.length-1;
@@ -2191,6 +2557,67 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra){
     ctx.fillText(`MFI 14  ${lastMfi!=null?lastMfi.toFixed(1):'-'}`, padL, mfiTop-2);
   }
 
+  // ---- Extra: RSI(14) + WMA(9) of RSI, with cross markers — bounded 0-100 like MFI's panel above ----
+  if(LAYER_VIS.rsiwma){
+    ctx.strokeStyle='#152238'; ctx.lineWidth=1; ctx.beginPath();
+    ctx.moveTo(padL,rsiwmaTop-14); ctx.lineTo(cssW-padR,rsiwmaTop-14); ctx.stroke();
+    const yRsi = v => rsiwmaTop + (1 - v/100)*rsiwmaH;
+    ctx.setLineDash([3,3]); ctx.strokeStyle='#243350'; ctx.lineWidth=1;
+    [30,50,70].forEach(lvl=>{ ctx.beginPath(); ctx.moveTo(padL,yRsi(lvl)); ctx.lineTo(cssW-padR,yRsi(lvl)); ctx.stroke(); });
+    ctx.setLineDash([]);
+    ctx.fillStyle='#3A4A63'; ctx.font='9px Share Tech Mono'; ctx.fillText('50', cssW-padR-16, yRsi(50)-2);
+    // RSI line
+    ctx.strokeStyle='#E8C547'; ctx.lineWidth=1.3; ctx.beginPath();
+    let stR=false;
+    rsiSlice.forEach((v,i)=>{ if(v==null) return; const px=x(i), py=yRsi(v); if(!stR){ctx.moveTo(px,py); stR=true;} else ctx.lineTo(px,py); });
+    ctx.stroke();
+    // WMA9-of-RSI signal line
+    ctx.strokeStyle='#4C8DFF'; ctx.lineWidth=1.3; ctx.beginPath();
+    let stW=false;
+    rsiWmaSlice.forEach((v,i)=>{ if(v==null) return; const px=x(i), py=yRsi(v); if(!stW){ctx.moveTo(px,py); stW=true;} else ctx.lineTo(px,py); });
+    ctx.stroke();
+    // cross markers — small triangle where RSI crosses its WMA9, bull(up)=green below the line, bear(down)=red above
+    for(let i=1;i<rsiSlice.length;i++){
+      const pR=rsiSlice[i-1], pW=rsiWmaSlice[i-1], cR=rsiSlice[i], cW=rsiWmaSlice[i];
+      if(pR==null||pW==null||cR==null||cW==null) continue;
+      const px = x(i);
+      if(pR<pW && cR>=cW){ // bullish cross
+        ctx.fillStyle='#26C281';
+        ctx.beginPath(); ctx.moveTo(px-4,yRsi(cR)+7); ctx.lineTo(px+4,yRsi(cR)+7); ctx.lineTo(px,yRsi(cR)+1); ctx.fill();
+      } else if(pR>pW && cR<=cW){ // bearish cross
+        ctx.fillStyle='#E14B4B';
+        ctx.beginPath(); ctx.moveTo(px-4,yRsi(cR)-7); ctx.lineTo(px+4,yRsi(cR)-7); ctx.lineTo(px,yRsi(cR)-1); ctx.fill();
+      }
+    }
+    const lastRsi = lastVal(rsiSlice), lastRsiWma = lastVal(rsiWmaSlice);
+    ctx.font='10px Share Tech Mono';
+    ctx.fillStyle='#E8C547'; ctx.fillText(`RSI 14  ${lastRsi!=null?lastRsi.toFixed(1):'-'}`, padL, rsiwmaTop-2);
+    ctx.fillStyle='#4C8DFF'; ctx.fillText(`WMA9  ${lastRsiWma!=null?lastRsiWma.toFixed(1):'-'}`, padL+120, rsiwmaTop-2);
+  }
+
+  // ---- Extra: raw RS (Wilder's avg-gain/avg-loss, unbounded) — the ratio RSI is built from, plotted plain ----
+  if(LAYER_VIS.rs){
+    ctx.strokeStyle='#152238'; ctx.lineWidth=1; ctx.beginPath();
+    ctx.moveTo(padL,rsTop-14); ctx.lineTo(cssW-padR,rsTop-14); ctx.stroke();
+    const vals = rsSlice.filter(v=>v!=null);
+    let rHi = vals.length ? Math.max(...vals, 1.0001) : 2;
+    let rLo = vals.length ? Math.min(...vals, 0) : 0;
+    const rPad = (rHi-rLo)*0.15 || 1; rHi+=rPad; rLo=Math.max(0,rLo-rPad);
+    const yRS = v => rsTop + (1-(v-rLo)/(rHi-rLo))*rsH;
+    if(rLo<1 && rHi>1){
+      ctx.setLineDash([3,3]); ctx.strokeStyle='#243350'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(padL,yRS(1)); ctx.lineTo(cssW-padR,yRS(1)); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle='#3A4A63'; ctx.font='9px Share Tech Mono'; ctx.fillText('1', cssW-padR-10, yRS(1)-2);
+    }
+    ctx.strokeStyle='#26C281'; ctx.lineWidth=1.3; ctx.beginPath();
+    let stRS=false;
+    rsSlice.forEach((v,i)=>{ if(v==null) return; const px=x(i), py=yRS(v); if(!stRS){ctx.moveTo(px,py); stRS=true;} else ctx.lineTo(px,py); });
+    ctx.stroke();
+    const lastRS = lastVal(rsSlice);
+    ctx.fillStyle='#26C281'; ctx.font='10px Share Tech Mono';
+    ctx.fillText(`RS 14  ${lastRS!=null?lastRS.toFixed(2):'-'}`, padL, rsTop-2);
+  }
+
   // ---- Extra: Stochastic (Time), 14/3/3 — name label only, no live value shown — only takes space when checked ----
   if(LAYER_VIS.stoch){
     ctx.strokeStyle='#152238'; ctx.lineWidth=1; ctx.beginPath();
@@ -2258,6 +2685,25 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra){
     ctx.fillText(`PRICE−MA21 ${lastGap!=null?(lastGap>=0?'+':'')+lastGap.toFixed(2):'-'}`, padL, magapTop-2);
   }
 
+  // ---- Combo Mode — chukul-style always-on right-edge value tags (not just hover) for DC21/Chikou (main panel)
+  //      + DPO/OBV (their own subpanels, when those are also checked on) ----
+  if(COMBO_MODE){
+    const drawEdgeTag = (val, py, color, decimals=2)=>{
+      if(val==null) return;
+      const txt = val.toFixed(decimals);
+      ctx.font='10px Share Tech Mono';
+      const tw = ctx.measureText(txt).width + 10;
+      ctx.fillStyle = color;
+      ctx.fillRect(cssW-padR-tw, py-8, tw, 16);
+      ctx.fillStyle = '#04140F';
+      ctx.fillText(txt, cssW-padR-tw+5, py+3);
+    };
+    if(LAYER_VIS.dc){ const v = lastVal(dcMidSlice); if(v!=null) drawEdgeTag(v, y(v), '#4C8DFF'); }
+    if(LAYER_VIS.chikou){ const v = lastVal(chikouSlice); if(v!=null) drawEdgeTag(v, y(v), '#E7EEF7'); }
+    if(LAYER_VIS.dpo){ const v = lastVal(dpoSlice); if(v!=null) drawEdgeTag(v, dpoTop+dpoH/2, '#26C281'); }
+    if(LAYER_VIS.obv){ const v = lastVal(obvSlice); if(v!=null) drawEdgeTag(v, obvTop+obvH/2, '#E8C547', 0); }
+  }
+
   // date labels (sparse)
   ctx.fillStyle='#6E8199'; ctx.font='10px Share Tech Mono';
   const step = Math.ceil(N/6);
@@ -2285,6 +2731,115 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra){
     ctx.fillRect(cssW-padR-labelW, py-9, labelW, 16);
     ctx.fillStyle='#04140F'; ctx.font='10px Share Tech Mono';
     ctx.fillText(r.price.toFixed(2), cssW-padR-labelW+5, py+3);
+  });
+
+  // draw the auto-detected AB=CD harmonic zigzag (last 4 confirmed alternating fractal-9 swings)
+  if(LAYER_VIS.abcd && extra.abcd){
+    const {A,B,C,D,bcRatio,cdRatio,abcdRatio,valid,bullish,abAngle,cdAngle} = extra.abcd;
+    const pts = [A,B,C,D].map(p => ({ li: p.idx - sliceStartGlobal, price: p.price }));
+    const allVisible = pts.every(p => p.li >= -5 && p.li <= N+5);
+    if(allVisible){
+      const col = bullish ? '#26C281' : '#E14B4B';
+      const bcCol = '#E8B44C'; // BC (the correction/middle leg) drawn in a distinct color from AB/CD
+      ctx.lineWidth=1.4; ctx.setLineDash([4,3]);
+      // AB leg
+      ctx.strokeStyle=col;
+      ctx.beginPath(); ctx.moveTo(x(pts[0].li),y(pts[0].price)); ctx.lineTo(x(pts[1].li),y(pts[1].price)); ctx.stroke();
+      // BC leg — different color, same AB=CD pattern color reserved for the two mirrored legs
+      ctx.strokeStyle=bcCol;
+      ctx.beginPath(); ctx.moveTo(x(pts[1].li),y(pts[1].price)); ctx.lineTo(x(pts[2].li),y(pts[2].price)); ctx.stroke();
+      // CD leg — same color as AB
+      ctx.strokeStyle=col;
+      ctx.beginPath(); ctx.moveTo(x(pts[2].li),y(pts[2].price)); ctx.lineTo(x(pts[3].li),y(pts[3].price)); ctx.stroke();
+      // faint straight A-D guide so the "CD ≈ AB" equality is visually checkable, not just a number
+      ctx.setLineDash([1,4]); ctx.strokeStyle=col+'80'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(x(pts[0].li),y(pts[0].price)); ctx.lineTo(x(pts[3].li),y(pts[3].price)); ctx.stroke();
+      ctx.setLineDash([]);
+      const labels=['A','B','C','D'];
+      pts.forEach((p,i)=>{
+        const px=x(p.li), py=y(p.price);
+        ctx.beginPath(); ctx.arc(px,py,9,0,Math.PI*2); ctx.fillStyle=col; ctx.fill();
+        ctx.fillStyle='#04140F'; ctx.font='bold 10px Share Tech Mono'; ctx.textAlign='center';
+        ctx.fillText(labels[i], px, py+3.5);
+        ctx.textAlign='left';
+      });
+      const midBC = {x:(x(pts[1].li)+x(pts[2].li))/2, y:(y(pts[1].price)+y(pts[2].price))/2};
+      const midCD = {x:(x(pts[2].li)+x(pts[3].li))/2, y:(y(pts[2].price)+y(pts[3].price))/2};
+      // color-code each leg by whether it sits in its own ideal fib zone — green=in zone, amber=outside
+      const bcInZone = bcRatio>=0.618 && bcRatio<=0.786;
+      const cdInZone = cdRatio>=1.272 && cdRatio<=1.618;
+      const GREEN='#26C281', AMBER='#C98A2C';
+      ctx.font='10px Share Tech Mono';
+      [[midBC,bcRatio,bcInZone],[midCD,cdRatio,cdInZone]].forEach(([m,ratio,inZone])=>{
+        const txt = ratio.toFixed(3);
+        const tw = ctx.measureText(txt).width+8;
+        ctx.fillStyle = inZone ? GREEN : AMBER;
+        ctx.fillRect(m.x-tw/2, m.y-9, tw, 16);
+        ctx.fillStyle='#04140F'; ctx.textAlign='center'; ctx.fillText(txt, m.x, m.y+3);
+        ctx.textAlign='left';
+      });
+      // AB=CD equality readout, pinned near D — the actual "is this a valid AB=CD" check
+      const dPx = x(pts[3].li), dPy = y(pts[3].price);
+      const eqTxt = `AB=CD ${abcdRatio.toFixed(3)} ${valid?'✓':'(loose)'}`;
+      ctx.font='10px Share Tech Mono'; ctx.textAlign='left';
+      const eqW = ctx.measureText(eqTxt).width+10;
+      const eqY = Math.max(padT+2, Math.min(padT+plotH-16, bullish ? dPy+14 : dPy-26));
+      ctx.fillStyle = valid ? GREEN : AMBER;
+      ctx.fillRect(dPx-eqW/2, eqY, eqW, 16);
+      ctx.fillStyle='#04140F'; ctx.textAlign='center'; ctx.fillText(eqTxt, dPx, eqY+11);
+      ctx.textAlign='left';
+
+      // AB / CD leg angle labels — ATR-normalized pseudo-angle (see legAngleDeg): ≥45°=sharp,
+      // 30-45°=moderate, <30°=RANGE (no clear direction). Small text tag near each leg's midpoint.
+      const angleColor = (lbl)=> lbl.startsWith('BULL') ? GREEN : lbl.startsWith('BEAR') ? '#E14B4B' : '#8fa8c0';
+      const midAB = {x:(x(pts[0].li)+x(pts[1].li))/2, y:(y(pts[0].price)+y(pts[1].price))/2};
+      ctx.font='9px Share Tech Mono'; ctx.textAlign='center';
+      if(abAngle && abAngle.deg!=null){
+        ctx.fillStyle = angleColor(abAngle.label);
+        ctx.fillText(`AB ${abAngle.deg.toFixed(0)}° ${abAngle.label.split(' ')[0]}`, midAB.x, midAB.y-12);
+      }
+      if(cdAngle && cdAngle.deg!=null){
+        ctx.fillStyle = angleColor(cdAngle.label);
+        ctx.fillText(`CD ${cdAngle.deg.toFixed(0)}° ${cdAngle.label.split(' ')[0]}`, dPx, eqY-6);
+      }
+      ctx.textAlign='left';
+    }
+  }
+
+  // manually placed (client/customer-drawn) ABC/ABCD patterns — purple, coexists with the auto layer above
+  (MANUAL_ABCD[sym] || []).forEach(m=>{
+    const pts = m.map(p => ({ li: p.globalIdx - sliceStartGlobal, price: p.price }));
+    if(!pts.every(p => p.li >= -5 && p.li <= N+5)) return;
+    const col = '#B084F5';
+    const bcCol = '#E8B44C'; // BC (middle/correction leg) distinct from AB/CD, matching the auto layer's scheme
+    ctx.lineWidth=1.4; ctx.setLineDash([4,3]);
+    for(let i=0;i<pts.length-1;i++){
+      ctx.strokeStyle = (i===1) ? bcCol : col; // segment 1 = B→C
+      ctx.beginPath(); ctx.moveTo(x(pts[i].li),y(pts[i].price)); ctx.lineTo(x(pts[i+1].li),y(pts[i+1].price)); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    const labels=['A','B','C','D'];
+    pts.forEach((p,i)=>{
+      const px=x(p.li), py=y(p.price);
+      ctx.beginPath(); ctx.arc(px,py,9,0,Math.PI*2); ctx.fillStyle=col; ctx.fill();
+      ctx.fillStyle='#04140F'; ctx.font='bold 10px Share Tech Mono'; ctx.textAlign='center';
+      ctx.fillText(labels[i], px, py+3.5);
+      ctx.textAlign='left';
+    });
+    const s = manualAbcdStats(m, extra.atrArr);
+    const midAB = {x:(x(pts[0].li)+x(pts[1].li))/2, y:(y(pts[0].price)+y(pts[1].price))/2};
+    const angleColor2 = (lbl)=> lbl.startsWith('BULL') ? '#26C281' : lbl.startsWith('BEAR') ? '#E14B4B' : '#8fa8c0';
+    ctx.font='9px Share Tech Mono'; ctx.textAlign='center';
+    if(s.abAngle.deg!=null){
+      ctx.fillStyle = angleColor2(s.abAngle.label);
+      ctx.fillText(`AB ${s.abAngle.deg.toFixed(0)}° ${s.abAngle.label.split(' ')[0]} (manual)`, midAB.x, midAB.y-12);
+    }
+    if(pts.length===4 && s.cdAngle.deg!=null){
+      const dPx2=x(pts[3].li), dPy2=y(pts[3].price);
+      ctx.fillStyle = angleColor2(s.cdAngle.label);
+      ctx.fillText(`CD ${s.cdAngle.deg.toFixed(0)}° ${s.cdAngle.label.split(' ')[0]}`, dPx2, dPy2-16);
+    }
+    ctx.textAlign='left';
   });
 
   // draw existing trend lines for this scrip
@@ -2350,6 +2905,31 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra){
     if(li>=0 && li<=N-1){
       const cx=x(li), cy=y(trendPending.price);
       ctx.beginPath(); ctx.arc(cx,cy,4,0,Math.PI*2); ctx.strokeStyle='#4C8DFF'; ctx.fillStyle=cssBg; ctx.fill(); ctx.stroke();
+    }
+  }
+
+  // manual ABCD in-progress markers (up to 3 placed so far, waiting on the next)
+  if(activeTool==='abcd' && abcdPending.length){
+    const labels=['A','B','C','D'];
+    abcdPending.forEach((p,i)=>{
+      const li = p.globalIdx - sliceStartGlobal;
+      if(li>=0 && li<=N-1){
+        const cx=x(li), cy=y(p.price);
+        ctx.beginPath(); ctx.arc(cx,cy,8,0,Math.PI*2); ctx.strokeStyle='#B084F5'; ctx.fillStyle=cssBg; ctx.fill(); ctx.stroke();
+        ctx.fillStyle='#B084F5'; ctx.font='bold 10px Share Tech Mono'; ctx.textAlign='center';
+        ctx.fillText(labels[i], cx, cy+3.5);
+        ctx.textAlign='left';
+      }
+    });
+    if(abcdPending.length>1){
+      ctx.strokeStyle='#B084F5AA'; ctx.lineWidth=1.2; ctx.setLineDash([3,3]);
+      ctx.beginPath();
+      abcdPending.forEach((p,i)=>{
+        const li = p.globalIdx - sliceStartGlobal;
+        const cx=x(li), cy=y(p.price);
+        if(i===0) ctx.moveTo(cx,cy); else ctx.lineTo(cx,cy);
+      });
+      ctx.stroke(); ctx.setLineDash([]);
     }
   }
 
@@ -2420,6 +3000,20 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra){
         document.getElementById('rayHint').textContent = `Anchor placed (${AVWAPS[sym].length}/5) — click again for another, or press ✕ Cancel to stop.`;
         document.getElementById('avwapToggleBtn').textContent = '✕ Cancel';
       }
+    } else if(activeTool === 'abcd'){
+      abcdPending.push({globalIdx, price, date: bar.date});
+      const stepHints = ['B','C','D'];
+      if(abcdPending.length < 4){
+        document.getElementById('rayHint').textContent = `Point ${['A','B','C','D'][abcdPending.length-1]} set — click ${stepHints[abcdPending.length-1]} next.`;
+        drawChart(bars, wmaArr, highF, lowF, sym, extra); // redraw to show the pending markers
+      } else {
+        if(!MANUAL_ABCD[sym]) MANUAL_ABCD[sym] = [];
+        MANUAL_ABCD[sym].push(abcdPending);
+        saveManualAbcd();
+        abcdPending = [];
+        activeTool = null;
+        render(sym);
+      }
     }
   };
 
@@ -2435,10 +3029,27 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra){
     const globalIdx = g.sliceStartGlobal + Math.max(0, Math.min(g.N-1, localIdx));
     const bar = bars[globalIdx];
     if(!bar){ tooltip.style.display='none'; return; }
-    tooltip.innerHTML = `<b>${bar.date}</b><br>LTP ${bar.c.toFixed(2)} &nbsp;H ${bar.h.toFixed(2)} &nbsp;L ${bar.l.toFixed(2)}<br>Vol ${Math.round(bar.v).toLocaleString()}`;
+    const typicalP = (bar.h + bar.l + bar.c) / 3;
+    let html = `<b>${bar.date}</b><br>LTP ${bar.c.toFixed(2)} &nbsp;H ${bar.h.toFixed(2)} &nbsp;L ${bar.l.toFixed(2)}<br>Vol ${Math.round(bar.v).toLocaleString()} &nbsp;P ${typicalP.toFixed(2)}`;
+    if(COMBO_MODE){
+      const dcAt = (extra.dcMidArr||[])[globalIdx];
+      const chikouAt = (extra.chikouArr||[])[globalIdx];
+      const dpoAt = (extra.dpoArr||[])[globalIdx];
+      const obvAt = (extra.obvArr||[])[globalIdx];
+      html += '<br><span style="color:#4C8DFF;">DC21−LTP ' + (dcAt!=null ? (dcAt-bar.c>=0?'+':'')+(dcAt-bar.c).toFixed(2) : '-') + '</span>';
+      if(chikouAt!=null){
+        const diff = chikouAt-bar.c;
+        html += ' &nbsp;<span style="color:#E7EEF7;">Chikou ' + (diff>=0?'▲top ':'▼bottom ') + (diff>=0?'+':'')+diff.toFixed(2) + '</span>';
+      } else {
+        html += ' &nbsp;<span style="color:#3A4A63;">Chikou -</span>';
+      }
+      html += '<br><span style="color:#26C281;">DPO21 ' + (dpoAt!=null ? (dpoAt>=0?'+':'')+dpoAt.toFixed(2) : '-') + '</span>';
+      html += ' &nbsp;<span style="color:#E8C547;">OBV ' + (obvAt!=null ? Math.round(obvAt).toLocaleString() : '-') + '</span>';
+    }
+    tooltip.innerHTML = html;
     tooltip.style.display = 'block';
     let leftPx = mx + 12;
-    if(leftPx + 155 > g.cssW) leftPx = mx - 165;
+    if(leftPx + 175 > g.cssW) leftPx = mx - 185;
     tooltip.style.left = Math.max(0,leftPx) + 'px';
     tooltip.style.top = '6px';
   };
@@ -2450,7 +3061,7 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra){
   canvas.ontouchend = hideTooltip;
 }
 
-renderAll();
+checkLicense().then(()=>{ updateLicenseBtn(); renderAll(); });
 </script>
 </body>
 </html>
