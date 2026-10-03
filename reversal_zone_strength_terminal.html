@@ -79,6 +79,32 @@
   .rowbtn{background:transparent;border:1px solid var(--line);color:var(--dim);padding:3px 8px;
     border-radius:4px;font-size:11px;}
   .scrolltbl{overflow-x:auto;}
+
+/* ===== Demo tab (Supply & Demand teaching view) ===== */
+body.demo-on #screenerWrap,body.demo-on #mainArea{display:none!important}
+#demoWrap{display:none;padding:16px 22px 34px;color:var(--txt);--ink:var(--txt);--mut:var(--dim);--card:var(--panel);--up:var(--green);--dn:var(--red);--amb:var(--amber);--zd:rgba(38,194,129,.2);--zs:rgba(225,75,75,.18)}
+#demoWrap h2{margin:0 0 2px;font-size:17px}
+#demoWrap .dmsub{color:var(--dim);font-size:12px;margin:0 0 12px}
+#demoWrap .dm-leg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+#demoWrap .dm-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+#demoWrap .lbl{color:var(--dim);font-size:12px}
+#demoWrap .chart{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px}
+#demoWrap .chart svg{width:100%;height:auto;display:block}
+#demoWrap .mini{width:100%;max-width:460px;height:auto;display:block;margin-top:8px;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+#demoWrap .exp{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--amber);border-radius:6px;padding:11px 15px;margin-top:8px;font-size:13px;line-height:1.55}
+#demoWrap .exp b{display:block}
+#demoWrap #dm_msg{color:var(--dim);font-size:12px;margin:6px 2px;min-height:1.3em}
+#demoWrap .zl{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;margin:10px 0}
+#demoWrap .zc,#demoWrap svg{user-select:none;-webkit-user-select:none}
+#demoWrap .zc{text-align:left;line-height:1.35}
+#demoWrap .zc small{display:block;color:var(--dim)}
+#demoWrap .zc[aria-pressed=true]{border:2px solid var(--txt);padding:7px 13px}
+#demoWrap table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:13px}
+#demoWrap td,#demoWrap th{padding:5px 8px 5px 0;border-bottom:1px solid var(--line);text-align:left}
+#demoWrap th{color:var(--dim);font-weight:600;font-size:12px}
+#demoWrap .srow{cursor:pointer}#demoWrap .srow:hover{background:var(--zd)}
+#demoWrap .dm-note{color:var(--dim);font-size:11.5px;margin-top:14px}
+@media(max-width:600px){#demoWrap .dm-leg{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -110,6 +136,7 @@
     <label class="filebtn" for="restoreFile">📤 Restore</label>
     <input type="file" id="restoreFile" accept=".json" style="display:none;">
     <button id="bakeBtn" title="Downloads a full copy of this tool with everything currently loaded (scrips, groups, drawings, settings) built in — opens ready, no re-upload needed. Useful for handing out a pre-loaded/demo copy as part of the key system.">🍞 Bake &amp; Download</button>
+    <button id="demoBtn" title="Supply &amp; Demand zone sajilo demo (leg-in / base / leg-out)">🎓 Demo</button>
     <button id="licenseBtn">🔒 Locked</button>
   </div>
 </header>
@@ -126,7 +153,7 @@
     <a id="requestKeyModalLink" href="#" style="display:block;text-align:center;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:7px 0;color:var(--txt);text-decoration:none;font-size:11px;margin-bottom:16px;">🔑 Email Nirr this Device ID to get a key</a>
     <div class="mono" style="font-size:11px;color:var(--dim);margin-bottom:4px;">Enter key:</div>
     <div style="display:flex;gap:6px;">
-      <input id="keyInputField" class="mono" placeholder="XXXXX-XXXXX" style="flex:1;font-size:12px;padding:7px 8px;background:var(--panel2);border:1px solid var(--line);border-radius:5px;color:var(--txt);">
+      <input id="keyInputField" class="mono" placeholder="XXXX-XXXX-XXXX" style="flex:1;font-size:12px;padding:7px 8px;background:var(--panel2);border:1px solid var(--line);border-radius:5px;color:var(--txt);">
       <button id="activateKeyBtn">Activate</button>
     </div>
     <div id="keyActivateMsg" class="mono" style="font-size:11px;margin-top:8px;"></div>
@@ -158,6 +185,8 @@
     <div><label>Group</label><select id="fGroup"><option value="all">All</option></select></div>
     <div><button id="removeGroupBtn" class="mono" style="font-size:11px;padding:6px 10px;border-color:var(--red);color:var(--red);">🗑 Remove Group</button></div>
     <div><button id="exportAllBtn" class="mono" style="font-size:11px;padding:6px 10px;">⇩ Export All (Excel)</button></div>
+    <div><button id="sectorImportBtn" class="mono" style="font-size:11px;padding:6px 10px;" title="CSV with Symbol, Name, Sector columns — one sector per scrip">🏷 Import sector list</button><input type="file" id="sectorImportFile" accept=".csv,text/csv" style="display:none"></div>
+    <div><button id="sectorExportBtn" class="mono" style="font-size:11px;padding:6px 10px;" title="Download the current scrip → sector list, edit in Excel, import again">⇩ Sector list (CSV)</button></div>
     <div class="count" id="screenerCount"></div>
   </div>
   <div id="groupsLostBanner" style="display:none;align-items:center;gap:10px;margin:0 0 10px;padding:9px 12px;background:#2A1B0A;border:1px solid #C98A2C;border-radius:6px;color:#F0C480;font-size:12px;">
@@ -172,11 +201,50 @@
     <button id="bulkGroupApplyBtn" class="mono" style="font-size:11px;padding:5px 10px;">Assign group to selected</button>
     <button id="bulkGroupClearBtn" class="mono" style="font-size:11px;padding:5px 10px;">Clear selection</button>
   </div>
+  <div id="sectorSummary" class="mono" style="display:none;margin:0 0 10px;padding:8px 12px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;font-size:12px;"></div>
   <div class="scrolltbl">
     <table class="screentbl" id="screenerTable"></table>
   </div>
 </div>
 
+
+<section id="demoWrap" aria-label="Supply and Demand demo">
+<h2>🎓 Demo — Supply &amp; Demand zone (sajilo)</h2>
+<p class="dmsub">Leg-in → Base → Leg-out matra। Volume chahidaina। Terminal ma load gareko scrip ma auto-apply hunchha।</p>
+<div class="dm-leg">
+  <div class="exp" style="margin:0;border-left-color:var(--up)"><b style="color:var(--up)">DEMAND = kinne zone</b>Price yaha bata <u>mathi</u> gayo. Feri yaha aaepachi kinne dabab hunchha।</div>
+  <div class="exp" style="margin:0;border-left-color:var(--dn)"><b style="color:var(--dn)">SUPPLY = bechne zone</b>Price yaha bata <u>tala</u> gayo. Feri yaha aaepachi bechne dabab hunchha।</div>
+</div>
+<div class="dm-bar">
+  <label class="lbl" for="dm_sc">Scrip:</label><select id="dm_sc" aria-label="Scrip"></select>
+  <span class="lbl">Demo:</span>
+  <button data-demo="DBR">DBR</button><button data-demo="RBR">RBR</button><button data-demo="RBD">RBD</button><button data-demo="DBD">DBD</button>
+  <select id="dm_n" aria-label="Bars"><option value="60">Last 60 bars</option><option value="120" selected>Last 120</option><option value="250">Last 250</option><option value="9999">All</option></select>
+  <label class="lbl"><input type="checkbox" id="dm_hb"> Broken zone chhipaun</label>
+  <label class="lbl"><input type="checkbox" id="dm_pp" checked> Pipe candle dekhaun</label>
+  <label class="lbl" title="Nirr structure: 3-5 thulo candle rise → top ma dilute → 5-10 candle bhitra same level → 1:1 correction"><input type="checkbox" id="dm_np" checked> Nirr pipe structure</label>
+  <label class="lbl" title="Structure aghi ko rally ko angle (chart ko screen scale ma). Yo bhanda tala = gentle">Angle max ° <input id="dm_nag" type="number" min="5" max="85" value="45" style="width:46px"></label>
+  <label class="lbl" title="NEPSE: kinepachi kati din samma bechna mildaina">Lock din <input id="dm_nlk" type="number" min="0" max="10" value="3" style="width:44px"></label>
+  <details id="dm_pset" style="display:inline-block;vertical-align:top"><summary class="lbl" style="cursor:pointer">⚙ Pipe setting</summary>
+   <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:6px 0">
+    <select id="dm_ppre"><option value="scrip">Scrip (NEPSE)</option><option value="strict">Strict (Bulkowski)</option><option value="loose">Loose (screening)</option></select>
+    <label class="lbl">Tolerance % <input id="dm_ptol" type="number" step="0.1" min="0.1" max="10" style="width:56px"></label>
+    <label class="lbl">Spike × avg range <input id="dm_psp" type="number" step="0.1" min="0.5" max="4" style="width:56px"></label>
+    <label class="lbl">Confirm bars <input id="dm_pcf" type="number" step="1" min="1" max="15" style="width:50px"></label>
+    <label class="lbl"><input type="checkbox" id="dm_ptr"> Aghillo trend chahinchha</label>
+   </div></details>
+  <button id="dm_share" title="Price Action (supply/demand) chart image share garne">↗ Share (Price Action)</button>
+</div>
+<div class="exp" id="dm_now" style="margin:0 0 8px"></div>
+<div class="chart"><svg id="dm_svg" viewBox="0 0 760 400" role="img" aria-label="Candlestick chart with supply and demand zones"></svg></div>
+<div id="dm_msg" aria-live="polite"></div>
+<div class="zl" id="dm_zl"></div>
+<div class="exp" id="dm_exp"></div>
+<div class="exp" id="dm_tc" style="border-left-color:var(--txt)"></div>
+<h3 style="margin:18px 0 6px;font-size:14px">Sabai scrip scan <span class="lbl">(terminal ma load gareko scrip ma kun zone ma price ahile chha)</span></h3>
+<div style="overflow-x:auto"><table id="dm_scan"></table></div>
+<p class="dm-note">Scrip add garna maathi <b>Load CSV(s)</b> use garnus — yaha automatically aauchha। Keyboard: ← → le zone badalnus। Rule: thulo candle (leg-in) → 1–4 sano candle (base) → feri thulo candle (leg-out)। Odds = supply/demand "odds enhancers" score (0-10) — zone ko quality ranking matra, guarantee hoina। Shaikshik tool — trading salaah hoina।</p>
+</section>
 <main id="mainArea">
   <div class="empty" style="grid-column:1/-1;">
     Load daily OHLCV CSVs (Date/Open/High/Low/Close/Volume — NEPSE export headers or scrip/date/o/h/l/c/v both work) to run the terminal.
@@ -215,6 +283,7 @@ const TREND_KEY = 'twv_rzst_trend_v1';
 const MANUAL_ABCD_KEY = 'twv_rzst_manual_abcd_v1';
 const BOX_KEY = 'twv_rzst_box_v1';
 const AVWAP_KEY = 'twv_rzst_avwap_v1';
+const POLY_KEY = 'twv_rzst_poly_v1';
 // ---------- Version lock — best-effort "deactivate old downloaded copies" check (not bulletproof; a
 // determined user can strip this from a local copy — see prior discussion). Fails OPEN: if the version
 // check can't be reached (offline, CORS, file not yet created), the tool works normally — this only
@@ -244,11 +313,49 @@ const SECTOR_KEY = 'twv_rzst_sectors_v1';
 const SECTOR_GROUPS = ['Commercial Banks','Development Banks','Finance','Hotels and Tourism','Hydropower','Investment','Life Insurance','Manufacturing and Processing','Microfinance','Mutual Funds','Non-Life Insurance','Others','Trading'];
 let SECTOR_MAP = JSON.parse(localStorage.getItem(SECTOR_KEY) || '{}'); // {SYM: 'Hydropower', ...}
 function saveSectorMap(){ localStorage.setItem(SECTOR_KEY, JSON.stringify(SECTOR_MAP)); }
+// ---- Master scrip list: {SYM:{n:'Company name', s:'Sector'}} — one sector per scrip. Your own dropdown edits (SECTOR_MAP) always win over it.
+const SECTOR_MASTER_KEY = 'twv_rzst_sector_master_v1';
+const SECTOR_MASTER_DEFAULT = {}; // built-in list goes here when baked: {"NABIL":{"n":"Nabil Bank Limited","s":"Commercial Banks"}, ...}
+let SECTOR_MASTER = Object.assign({}, SECTOR_MASTER_DEFAULT, JSON.parse(localStorage.getItem(SECTOR_MASTER_KEY) || '{}'));
+function saveSectorMaster(){ localStorage.setItem(SECTOR_MASTER_KEY, JSON.stringify(SECTOR_MASTER)); }
+function getSector(sym){ return SECTOR_MAP[sym] || (SECTOR_MASTER[sym] && SECTOR_MASTER[sym].s) || ''; }
+function getName(sym){ return (SECTOR_MASTER[sym] && SECTOR_MASTER[sym].n) || ''; }
+const SECTOR_ALIASES = {commercialbanks:'Commercial Banks',commercialbank:'Commercial Banks',banking:'Commercial Banks',banks:'Commercial Banks',bank:'Commercial Banks',
+  developmentbanks:'Development Banks',developmentbank:'Development Banks',finance:'Finance',financecompanies:'Finance',financecompany:'Finance',
+  hotelsandtourism:'Hotels and Tourism',hotelandtourism:'Hotels and Tourism',hotels:'Hotels and Tourism',tourism:'Hotels and Tourism',
+  hydropower:'Hydropower',hydro:'Hydropower',hydropowers:'Hydropower',investment:'Investment',lifeinsurance:'Life Insurance',life:'Life Insurance',
+  manufacturingandprocessing:'Manufacturing and Processing',manufacturing:'Manufacturing and Processing',microfinance:'Microfinance',microfinancecompany:'Microfinance',
+  mutualfunds:'Mutual Funds',mutualfund:'Mutual Funds',nonlifeinsurance:'Non-Life Insurance',nonlife:'Non-Life Insurance',others:'Others',other:'Others',trading:'Trading',tradings:'Trading'};
+function normSector(x){ return SECTOR_ALIASES[String(x||'').toLowerCase().replace(/[^a-z]/g,'')] || ''; }
+function splitCSVLine(line){ const out=[]; let cur='', q=false; for(let i=0;i<line.length;i++){ const ch=line[i]; if(q){ if(ch==='"'&&line[i+1]==='"'){cur+='"';i++;} else if(ch==='"'){q=false;} else cur+=ch; } else if(ch==='"'){q=true;} else if(ch===','){out.push(cur);cur='';} else cur+=ch; } out.push(cur); return out.map(v=>v.trim()); }
+function importSectorList(text){
+  const lines = text.replace(/^\uFEFF/,'').split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length<2){ alert('List is empty.'); return; }
+  const head = splitCSVLine(lines[0]).map(h=>h.toLowerCase().replace(/[^a-z]/g,''));
+  const find = (names)=>head.findIndex(h=>names.includes(h));
+  const iSym = find(['symbol','ticker','scrip','sym','code']), iName = find(['name','company','companyname','securityname','stockname']), iSec = find(['sector','group','sectorname','industry']);
+  if(iSym<0 || iSec<0){ alert('CSV needs a Symbol column and a Sector column (Name column optional).'); return; }
+  let ok=0; const bad={};
+  lines.slice(1).forEach(l=>{
+    const c = splitCSVLine(l); const sym = (c[iSym]||'').toUpperCase().replace(/[^A-Z0-9]/g,''); if(!sym) return;
+    const sec = normSector(c[iSec]); if(!sec){ bad[c[iSec]||'(blank)'] = (bad[c[iSec]||'(blank)']||0)+1; }
+    SECTOR_MASTER[sym] = {n: iName>=0 ? (c[iName]||'') : ((SECTOR_MASTER[sym]&&SECTOR_MASTER[sym].n)||''), s: sec}; ok++;
+  });
+  saveSectorMaster(); renderAll();
+  const badTxt = Object.keys(bad).length ? '\n\nSector names not recognised (left Unassigned): ' + Object.entries(bad).map(([k,v])=>k+' ('+v+')').join(', ') : '';
+  alert('Sector list loaded: '+ok+' scrips.'+badTxt);
+}
+function exportSectorList(){
+  const syms = Array.from(new Set(Object.keys(SECTOR_MASTER).concat(Object.keys(LIB)))).sort();
+  const q = v=>'"'+String(v||'').replace(/"/g,'""')+'"';
+  const csv = 'Symbol,Name,Sector\n' + syms.map(sy=>[sy,q(getName(sy)),q(getSector(sy))].join(',')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download = 'nepse_sector_list_'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+}
 let LIB = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
 // Default state: only MA21 (trend color) is on out of the box — everything else is an opt-in "option" the
 // user turns on themselves. Foundation for the planned key/license-gated tiers (see [[nepse-scrip-dashboards]]
 // serial-key plan) — free/default view = MA21 only, unlocking more indicators is a later gating step on top of this.
-const DEFAULT_LAYER_VIS = {piv:false,wma:false,vol:false,dc:false,dpo:false,macd:false,mfi:false,kama:false,hull:false,cks:false,stoch:false,paf:false,obv:false,khsig:false,emacross:false,turbo:false,avwap:false,ma120:false,ma180:false,ma21c:true,chikou:false,magap:false,rsiwma:false,rs:false,abcd:false};
+const DEFAULT_LAYER_VIS = {piv:false,wma:false,vol:false,dc:false,dpo:false,macd:false,mfi:false,kama:false,hull:false,cks:false,stoch:false,paf:false,obv:false,khsig:false,emacross:false,turbo:false,avwap:false,ma120:false,ma180:false,ma21c:true,chikou:false,magap:false,rsiwma:false,rs:false,abcd:false,zigzag:false,dbltouch:true,ao:false};
 let LAYER_VIS = Object.assign({}, DEFAULT_LAYER_VIS, JSON.parse(localStorage.getItem('twv_rzst_layers_v1') || '{}'));
 function saveLayerVis(){ localStorage.setItem('twv_rzst_layers_v1', JSON.stringify(LAYER_VIS)); }
 
@@ -258,7 +365,10 @@ function saveLayerVis(){ localStorage.setItem('twv_rzst_layers_v1', JSON.stringi
 // clearing site data or opening a different browser looks like a new device. That's the accepted tradeoff for a
 // fully offline, no-server tool; it stops casual key-sharing without needing any backend.
 // CHANGE THIS before shipping, and keep it identical in key_generator.html or generated keys won't validate here.
-const LICENSE_SECRET = 'TWV-RZST-2026-CHANGE-ME';
+const LICENSE_SECRET = 'TWV-9CJUZ85IJ96POG0T76TT'; // must match key_generator_v3_expiry.html exactly
+const LIC_EPOCH = Date.UTC(2026,0,1);
+const LIC_SEEN_KEY = 'twv_rzst_last_seen_day';
+let LIC_INFO='', LIC_NOTE='', LIC_FAIL='';
 const DEVICE_ID_KEY = 'twv_rzst_device_id';
 const LICENSE_KEY_KEY = 'twv_rzst_license_key';
 function getDeviceId(){
@@ -270,29 +380,51 @@ function getDeviceId(){
   }
   return id;
 }
-async function computeKeyFor(deviceId){
-  const enc = new TextEncoder().encode(deviceId+'|'+LICENSE_SECRET);
+function licToday(){ // whole days since LIC_EPOCH; detects the system clock being set backwards
+  const d=Math.floor((Date.now()-LIC_EPOCH)/86400000);
+  const seen=parseInt(localStorage.getItem(LIC_SEEN_KEY)||'0',10);
+  if(seen>d+1) return {d:seen,tamper:true};
+  if(d>seen) localStorage.setItem(LIC_SEEN_KEY,String(d));
+  return {d:d,tamper:false};
+}
+function daysToDate(n){ return new Date(LIC_EPOCH+n*86400000).toISOString().slice(0,10); }
+async function sigFor(deviceId, expDays){
+  const enc = new TextEncoder().encode(deviceId+'|'+expDays+'|'+LICENSE_SECRET);
   const buf = await crypto.subtle.digest('SHA-256', enc);
-  const hex = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
-  const raw = hex.slice(0,10);
-  return raw.slice(0,5)+'-'+raw.slice(5,10);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase().slice(0,8);
 }
 function normalizeKey(k){ return (k||'').toUpperCase().replace(/[^A-Z0-9]/g,''); }
 let LICENSED = false; // flipped true by checkLicense() below, before first render
+// Key = 4 chars expiry (base36 days since 2026-01-01; 0000 = no expiry) + 8 chars signature, shown XXXX-XXXX-XXXX
+async function verifyKey(k){
+  const n = normalizeKey(k);
+  if(n.length!==12) return {ok:false,reason:'Key format is wrong (needs 12 characters).'};
+  const expDays = parseInt(n.slice(0,4),36);
+  if(isNaN(expDays)) return {ok:false,reason:null};
+  const sig = await sigFor(getDeviceId(), expDays);
+  if(sig!==n.slice(4)) return {ok:false,reason:null};
+  if(expDays===0) return {ok:true,exp:0};
+  const t = licToday();
+  if(t.tamper) return {ok:false,reason:'System date looks set backwards. Fix the date and reopen the file.'};
+  if(t.d>expDays) return {ok:false,reason:'This key expired on '+daysToDate(expDays)+'. Request a new key.'};
+  return {ok:true,exp:expDays};
+}
+function licInfoFor(r){ return r.exp ? ' (valid until '+daysToDate(r.exp)+')' : ' (no expiry)'; }
 async function checkLicense(){
-  const deviceId = getDeviceId();
+  LIC_INFO=''; LIC_NOTE='';
   const savedKey = localStorage.getItem(LICENSE_KEY_KEY);
   if(!savedKey){ LICENSED=false; return false; }
-  const expected = await computeKeyFor(deviceId);
-  LICENSED = normalizeKey(savedKey)===normalizeKey(expected);
+  const r = await verifyKey(savedKey);
+  LICENSED = r.ok;
+  if(r.ok) LIC_INFO = licInfoFor(r); else if(r.reason) LIC_NOTE = r.reason+' ';
   return LICENSED;
 }
 async function activateKey(enteredKey){
-  const deviceId = getDeviceId();
-  const expected = await computeKeyFor(deviceId);
-  const ok = normalizeKey(enteredKey)===normalizeKey(expected);
-  if(ok){ localStorage.setItem(LICENSE_KEY_KEY, normalizeKey(enteredKey)); LICENSED=true; }
-  return ok;
+  LIC_FAIL='';
+  const r = await verifyKey(enteredKey);
+  if(r.ok){ localStorage.setItem(LICENSE_KEY_KEY, normalizeKey(enteredKey)); LICENSED=true; LIC_INFO=licInfoFor(r); LIC_NOTE=''; return true; }
+  LIC_FAIL = r.reason||'';
+  return false;
 }
 
 // ---------- Price-level alerts (Pivot + manual AVWAP) — beep + visual flag when the latest close touches/crosses
@@ -325,7 +457,7 @@ function playAlertBeep(){
     }, 160);
   }catch(e){ /* Web Audio unavailable — fail silently */ }
 }
-function checkPriceLevelAlerts(sym, bars, pivotSegments, avwapManualList){
+function checkPriceLevelAlerts(sym, bars, pivotSegments, avwapManualList, trendLineList){
   const n = bars.length;
   if(n<2) return [];
   const cur = bars[n-1].c, prev = bars[n-2].c;
@@ -347,6 +479,13 @@ function checkPriceLevelAlerts(sym, bars, pivotSegments, avwapManualList){
     const lv = arr[arr.length-1];
     touchOrCross(lv, `AVWAP-${a.side==='high'?'H':'L'} #${i+1}`);
   });
+  // trend-line ctr (50% equilibrium) levels — close-based only (touchOrCross already uses close, not wick,
+  // so this stays quiet through ordinary intraday-range noise); one alert per line per day via the dedupe below
+  (trendLineList||[]).forEach((l,i)=>{
+    const mid = (l.p1+l.p2)/2;
+    const dir = l.p2>l.p1 ? 'UP' : l.p2<l.p1 ? 'DOWN' : 'FLAT';
+    touchOrCross(mid, `Trend ctr ${dir} #${i+1}`);
+  });
   // dedupe per scrip+date+label so switching back and forth doesn't re-beep for the same day's data
   const fresh = hits.filter(h => !ALERTED_KEYS.has(`${sym}|${bars[n-1].date}|${h.label}`));
   fresh.forEach(h => ALERTED_KEYS.add(`${sym}|${bars[n-1].date}|${h.label}`));
@@ -358,21 +497,30 @@ let TRENDLINES = JSON.parse(localStorage.getItem(TREND_KEY) || '{}');
 let MANUAL_ABCD = JSON.parse(localStorage.getItem(MANUAL_ABCD_KEY) || '{}'); // client/customer-drawn ABC/ABCD patterns, per scrip array
 let BOXES = JSON.parse(localStorage.getItem(BOX_KEY) || '{}');
 let AVWAPS = JSON.parse(localStorage.getItem(AVWAP_KEY) || '{}'); // manually-placed AVWAP anchors, max 5 per scrip (FIFO)
+const POLYLINES = JSON.parse(localStorage.getItem(POLY_KEY) || '{}'); // manual Polyline (Chukul-style rise/fall 2-color swing connector), per scrip array of point-arrays
 let currentScrip = null;
 let CURRENT_DIM_STATE = null; // snapshot of this scrip's live Phase/Zone/Strength/KAMA-Hull reads, for the tap-to-explain card panel
-let activeTool = null; // null | 'ray' | 'trend' | 'box' | 'avwap' | 'abcd'
+let activeTool = null; // null | 'ray' | 'trend' | 'box' | 'avwap' | 'abcd' | 'poly'
 let trendPending = null; // {globalIdx, price, date} — first point of an in-progress trend line
 let boxPending = null; // {globalIdx, price, date} — first corner of an in-progress box
 let abcdPending = []; // in-progress manual ABC/ABCD clicks — accumulates up to 4 points (A,B,C,D in click order)
+let polyPending = []; // in-progress manual Polyline clicks — unlimited points, finished by clicking the last point again or double-click
 let chartGeom = null;
 let LAST_BAR_COUNT = {}; // sym -> bar count as of last render(), used to detect "new bar just arrived" for the live-scroll animation
 let CHART_SCROLL_RAF = null; // in-flight requestAnimationFrame id, so a fast double-apply cancels the previous run cleanly
 let FORCE_SCROLL_ANIM = false; // set true right before selecting a scrip so its first chart paint also slides in
 function saveRays(){ localStorage.setItem(RAY_KEY, JSON.stringify(RAYS)); }
 function saveTrendLines(){ localStorage.setItem(TREND_KEY, JSON.stringify(TRENDLINES)); }
+const FAN_KEY = 'twv_rzst_fan_v1';
+let FANS = JSON.parse(localStorage.getItem(FAN_KEY) || '{}'); // Fibonacci fans per scrip: {x1,p1,x2,p2,d1,d2}
+function saveFans(){ localStorage.setItem(FAN_KEY, JSON.stringify(FANS)); }
+let TREND_AUTO_COL = localStorage.getItem('twv_rzst_trend_auto') !== '0';   // auto = up green / down red / flat blue
+let TREND_COL = localStorage.getItem('twv_rzst_trend_col') || '#4C8DFF';
+let MID_RAY = localStorage.getItem('twv_rzst_midray') !== '0';              // extend each trend line's mid level to the right as a ray
 function saveManualAbcd(){ localStorage.setItem(MANUAL_ABCD_KEY, JSON.stringify(MANUAL_ABCD)); }
 function saveBoxes(){ localStorage.setItem(BOX_KEY, JSON.stringify(BOXES)); }
 function saveAvwaps(){ localStorage.setItem(AVWAP_KEY, JSON.stringify(AVWAPS)); }
+function savePolylines(){ localStorage.setItem(POLY_KEY, JSON.stringify(POLYLINES)); }
 
 // ---------- CSV parsing (same convention family as FQ Trade / Cycle Chop) ----------
 function detectCol(headers, keys){
@@ -454,8 +602,8 @@ document.getElementById('clearAllBtn').addEventListener('click', ()=>{
   const count = Object.keys(LIB).length;
   if(!count){ alert('No scrips loaded — already a fresh start.'); return; }
   if(!confirm(`Remove all ${count} loaded scrip(s) and start fresh? This also clears any rays/trend lines/boxes/AVWAP anchors and group tags saved against them. This cannot be undone — use Backup first if you want to keep a copy.`)) return;
-  LIB = {}; RAYS = {}; TRENDLINES = {}; BOXES = {}; AVWAPS = {}; SECTOR_MAP = {};
-  saveLib(); saveRays(); saveTrendLines(); saveBoxes(); saveAvwaps(); saveSectorMap();
+  LIB = {}; RAYS = {}; TRENDLINES = {}; FANS = {}; BOXES = {}; AVWAPS = {}; SECTOR_MAP = {};
+  saveLib(); saveRays(); saveTrendLines(); saveFans(); saveBoxes(); saveAvwaps(); saveSectorMap();
   currentScrip = null;
   ALERTED_KEYS.clear();
   document.getElementById('mainArea').innerHTML = '<div class="empty" style="grid-column:1/-1;">Load daily OHLCV CSVs to run the terminal.</div>';
@@ -496,7 +644,11 @@ function computeAllScrips(){
     const {phase} = computePhase(bars,wmaArr,atrArr,highF,lowF);
     const zone = computeZone(bars,wmaArr,ci,highF,lowF);
     const strength = computeStrength(atrArr,bars.length);
-    return {sym, bars, phase, zone, strength, last: bars[bars.length-1]};
+    const last = bars[bars.length-1], prev = bars[bars.length-2];
+    const chg = prev && prev.c ? (last.c - prev.c) / prev.c * 100 : 0;
+    let vs = 0, vn = 0; for(let k=Math.max(0,bars.length-21); k<bars.length-1; k++){ if(bars[k].v>0){ vs += bars[k].v; vn++; } }
+    const rvol = (vn>=5 && last.v>0) ? last.v / (vs/vn) : null; // today's volume vs the previous ~20-bar average
+    return {sym, bars, phase, zone, strength, last, chg, rvol};
   });
 }
 function applyFilters(rows){
@@ -513,10 +665,23 @@ function applyFilters(rows){
     if(zoneF!=='all' && !r.zone.type.toUpperCase().includes(zoneF)) return false;
     if(zoneStatusF!=='all' && r.zone.status!==zoneStatusF) return false;
     if(strengthF!=='all' && r.strength.band!==strengthF) return false;
-    if(groupF!=='all' && (SECTOR_MAP[r.sym]||'Unassigned')!==groupF) return false;
-    if(search && !r.sym.toUpperCase().includes(search)) return false;
+    if(groupF!=='all' && (getSector(r.sym)||'Unassigned')!==groupF) return false;
+    if(search && !r.sym.toUpperCase().includes(search) && !getName(r.sym).toUpperCase().includes(search)) return false;
     return true;
   });
+}
+function isMoving(r){ return Math.abs(r.chg) >= 2 || (r.rvol != null && r.rvol >= 2); } // a real move: ±2% or double the usual volume
+function renderSectorSummary(rows){
+  const el = document.getElementById('sectorSummary'); if(!el) return;
+  const g = document.getElementById('fGroup').value;
+  if(g==='all' || !rows.length){ el.style.display='none'; return; }
+  const up = rows.filter(r=>r.chg>0).length, dn = rows.filter(r=>r.chg<0).length, fl = rows.length-up-dn;
+  const avg = rows.reduce((a,r)=>a+r.chg,0)/rows.length, mv = rows.filter(isMoving).length;
+  const srt = rows.slice().sort((a,b)=>b.chg-a.chg);
+  const fmt = r=>`<span class="mono" style="cursor:pointer;" onclick="selectScrip('${r.sym}')">${r.sym} <b style="color:${r.chg>=0?'#26C281':'#E14B4B'}">${r.chg>=0?'+':''}${r.chg.toFixed(1)}%</b></span>`;
+  el.style.display='block';
+  el.innerHTML = `<b>${g}</b> · ${rows.length} scrips · <span style="color:#26C281">▲ ${up}</span> <span style="color:#E14B4B">▼ ${dn}</span> <span style="color:var(--dim)">= ${fl}</span> · avg <b style="color:${avg>=0?'#26C281':'#E14B4B'}">${avg>=0?'+':''}${avg.toFixed(2)}%</b> · <b>${mv}</b> moving (●: ±2% or 2× volume)
+    <div style="margin-top:4px;color:var(--dim);">Top: ${srt.slice(0,3).map(fmt).join(' · ')} &nbsp;|&nbsp; Weak: ${srt.slice(-3).reverse().map(fmt).join(' · ')}</div>`;
 }
 function renderScreener(){
   const wrap = document.getElementById('screenerWrap');
@@ -531,10 +696,13 @@ function renderScreener(){
     else if(sortCol==='phase'){ av=a.phase.state; bv=b.phase.state; }
     else if(sortCol==='zone'){ av=a.zone.type; bv=b.zone.type; }
     else if(sortCol==='strength'){ av=a.strength.score; bv=b.strength.score; }
+    else if(sortCol==='chg'){ av=a.chg; bv=b.chg; }
+    else if(sortCol==='rvol'){ av=a.rvol||0; bv=b.rvol||0; }
     else { av=a.sym; bv=b.sym; }
     if(av<bv) return -1*sortDir; if(av>bv) return 1*sortDir; return 0;
   });
   document.getElementById('screenerCount').textContent = rows.length+' of '+all.length+' scrips';
+  renderSectorSummary(rows);
   LAST_SCREENER_SYMS = rows.map(r=>r.sym);
   const allSelected = LAST_SCREENER_SYMS.length>0 && LAST_SCREENER_SYMS.every(s=>SELECTED_SYMS.has(s));
   const head = `<thead><tr>
@@ -542,6 +710,8 @@ function renderScreener(){
     <th onclick="setSort('sym')">SCRIP</th>
     <th>GROUP</th>
     <th onclick="setSort('close')">CLOSE</th>
+    <th onclick="setSort('chg')" title="Today vs previous close">CHG %</th>
+    <th onclick="setSort('rvol')" title="Today's volume vs previous ~20-bar average">VOL ×</th>
     <th onclick="setSort('phase')">PHASE</th>
     <th>BIAS</th>
     <th onclick="setSort('zone')">ZONE</th>
@@ -555,16 +725,18 @@ function renderScreener(){
                        r.phase.bias==='bear' ? '<span class="badge b-bear">BEAR</span>' : '<span class="badge b-neutral">—</span>';
     const statusBadge = r.zone.status==='CONFIRMED' ? '<span class="badge b-confirmed">CONFIRMED</span>' :
                          r.zone.status==='WATCH' ? '<span class="badge b-watch">WATCH</span>' : '—';
-    const curSector = SECTOR_MAP[r.sym] || '';
+    const curSector = getSector(r.sym);
     const sectorSelect = `<select class="mono" onclick="event.stopPropagation()" onchange="event.stopPropagation(); setScripSector('${r.sym}', this.value)" style="font-size:10px;padding:2px 4px;">
       <option value="" ${curSector===''?'selected':''}>Unassigned</option>
       ${SECTOR_GROUPS.map(g=>`<option value="${g}" ${curSector===g?'selected':''}>${g}</option>`).join('')}
     </select>`;
     return `<tr class="${r.sym===currentScrip?'sel':''}" onclick="selectScrip('${r.sym}')">
       <td onclick="event.stopPropagation()"><input type="checkbox" ${SELECTED_SYMS.has(r.sym)?'checked':''} onchange="toggleScripSelect('${r.sym}', this.checked)"></td>
-      <td class="scripcell mono">${r.sym}</td>
+      <td class="scripcell mono">${r.sym}${getName(r.sym)?`<div style="font-size:9px;color:var(--dim);font-weight:400;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${getName(r.sym).replace(/"/g,'&quot;')}">${getName(r.sym)}</div>`:''}</td>
       <td>${sectorSelect}</td>
       <td class="mono">${r.last.c.toFixed(2)}</td>
+      <td class="mono" style="color:${r.chg>0?'var(--green,#26C281)':r.chg<0?'var(--red,#E14B4B)':'var(--dim)'};font-weight:${isMoving(r)?'700':'400'}">${r.chg>0?'+':''}${r.chg.toFixed(2)}%${isMoving(r)?' ●':''}</td>
+      <td class="mono" style="color:${r.rvol!=null&&r.rvol>=2?'var(--amber,#F5A524)':'var(--dim)'}">${r.rvol!=null?r.rvol.toFixed(1)+'×':'—'}</td>
       <td>${r.phase.state}${r.phase.broke?' ⚑':''}</td>
       <td>${biasBadge}</td>
       <td>${r.zone.type}</td>
@@ -583,7 +755,7 @@ function updateGroupsLostBanner(){
   const banner = document.getElementById('groupsLostBanner');
   if(!banner) return;
   const hasScrips = Object.keys(LIB).length > 0;
-  const hasAnyGroupTag = Object.keys(SECTOR_MAP).length > 0;
+  const hasAnyGroupTag = Object.keys(SECTOR_MAP).length > 0 || Object.keys(SECTOR_MASTER).length > 0;
   banner.style.display = (hasScrips && !hasAnyGroupTag && !groupsLostBannerDismissed) ? 'flex' : 'none';
 }
 document.getElementById('dismissGroupsLostBanner').addEventListener('click', ()=>{
@@ -643,10 +815,10 @@ window.setSort = setSort;
 document.getElementById('removeGroupBtn').addEventListener('click', ()=>{
   const g = document.getElementById('fGroup').value;
   if(g==='all'){ alert('Pick a specific group first (not "All").'); return; }
-  const syms = Object.keys(LIB).filter(s => (SECTOR_MAP[s]||'Unassigned')===g);
+  const syms = Object.keys(LIB).filter(s => (getSector(s)||'Unassigned')===g);
   if(!syms.length){ alert('No loaded scrips are in that group.'); return; }
   if(!confirm(`Remove ${syms.length} scrip(s) in "${g}"? This also clears any rays/trend lines/boxes/AVWAP anchors saved against them. Use Backup first if you want to keep a copy.`)) return;
-  syms.forEach(s=>{ delete LIB[s]; delete RAYS[s]; delete TRENDLINES[s]; delete BOXES[s]; delete AVWAPS[s]; delete SECTOR_MAP[s]; });
+  syms.forEach(s=>{ delete LIB[s]; delete RAYS[s]; delete TRENDLINES[s]; delete FANS[s]; delete BOXES[s]; delete AVWAPS[s]; delete SECTOR_MAP[s]; });
   saveLib(); saveRays(); saveTrendLines(); saveBoxes(); saveAvwaps(); saveSectorMap();
   if(syms.includes(currentScrip)){
     currentScrip = null;
@@ -970,7 +1142,13 @@ function classifyLegAngle(deg, priceUp){
   if(deg>=30) return {label: priceUp ? 'BULL (moderate, 30-45°)' : 'BEAR (moderate, 30-45°)', deg};
   return {label:'RANGE (flat, <30° — no clear direction)', deg};
 }
-function detectLastABCD(bars, highF, lowF, atrArr){
+// Awesome Oscillator — SMA5(median) - SMA34(median), median = (H+L)/2. Chukul-style 2-tone: green rising, magenta falling.
+function awesomeOsc(bars){
+  const median = bars.map(b => (b.h+b.l)/2);
+  const fast = sma(median, 5), slow = sma(median, 34);
+  return median.map((_,i) => (fast[i]!=null && slow[i]!=null) ? fast[i]-slow[i] : null);
+}
+function detectLastABCD(bars, highF, lowF, atrArr, aoArr){
   const events = [];
   for(let i=0;i<bars.length;i++){
     if(highF[i]) events.push({idx:i, type:'H', price:bars[i].h, date:bars[i].date});
@@ -992,7 +1170,19 @@ function detectLastABCD(bars, highF, lowF, atrArr){
   const atrAtD = atrArr && atrArr[D.idx]!=null ? atrArr[D.idx] : null;
   const abAngle = classifyLegAngle(legAngleDeg(Math.abs(B.idx-A.idx), B.price-A.price, atrAtB), B.price>A.price);
   const cdAngle = classifyLegAngle(legAngleDeg(Math.abs(D.idx-C.idx), D.price-C.price, atrAtD), D.price>C.price);
-  return { A, B, C, D, bcRatio: BC/AB, cdRatio: CD/BC, abcdRatio, valid, bullish: D.type==='L', abAngle, cdAngle };
+    // AO divergence at D vs the prior same-type swing point (B): price extends past B but AO doesn't confirm it
+  let aoDivergence = null;
+  if(aoArr && aoArr[D.idx]!=null && aoArr[B.idx]!=null){
+    const aoD = aoArr[D.idx], aoB = aoArr[B.idx];
+    if(D.type==='L'){ // bullish setup — new low at D should ideally be confirmed by AO also making a lower low
+      if(D.price < B.price && aoD > aoB) aoDivergence = 'bullish'; // price lower low, AO higher low -> confirms the bullish pattern
+      else if(D.price < B.price && aoD <= aoB) aoDivergence = 'none';
+    } else { // bearish setup — new high at D
+      if(D.price > B.price && aoD < aoB) aoDivergence = 'bearish'; // price higher high, AO lower high -> confirms the bearish pattern
+      else if(D.price > B.price && aoD >= aoB) aoDivergence = 'none';
+    }
+  }
+  return { A, B, C, D, bcRatio: BC/AB, cdRatio: CD/BC, abcdRatio, valid, bullish: D.type==='L', abAngle, cdAngle, aoDivergence };
 }
 // Price − MA21 gap, per bar — the raw +/- lag between LTP and the indicator (not normalized like DPO).
 function maGap(closes, maArr){
@@ -1128,7 +1318,12 @@ function weeklyPivotSegments(bars){
   const segs = [];
   for(let i=1;i<wk.length;i++){
     const piv = demarkPivot(wk[i-1]);
-    segs.push({startIdx: wk[i].startIdx, endIdx: wk[i].endIdx, pivot:piv.pivot, r1:piv.r1, s1:piv.s1});
+    // extreme targets — Woodie formulas off the prior week's H/L/C (Woodie P = (H+L+2C)/4):
+    // R3 = H + 2(P−L), R4 = R3 + (H−L), S3 = L − 2(H−P), S4 = S3 − (H−L). Chart only shows the side price is on.
+    const pw = wk[i-1], rng = pw.h - pw.l, wP = (pw.h + pw.l + 2*pw.c)/4;
+    const wR3 = pw.h + 2*(wP - pw.l), wS3 = pw.l - 2*(pw.h - wP);
+    segs.push({startIdx: wk[i].startIdx, endIdx: wk[i].endIdx, pivot:piv.pivot, r1:piv.r1, s1:piv.s1,
+      r3: wR3, r4: wR3 + rng, s3: wS3, s4: wS3 - rng});
   }
   return segs;
 }
@@ -1332,33 +1527,8 @@ function biasStreak(kamaHullArr){
 }
 
 // ---------- render ----------
-function render(sym){
-  const bars = LIB[sym];
-  if(!bars || bars.length < 15){
-    document.getElementById('mainArea').innerHTML = `<div class="empty" style="grid-column:1/-1;">${sym}: only ${bars?bars.length:0} bars loaded — need at least ~30 for reliable phase/zone reads.</div>`;
-    return;
-  }
-  // did new bar(s) land for this scrip since the last time we rendered it, or did the user just touch this
-  // scrip's row (screener click)? either way the chart animates a right-to-left live-scroll slide-in instead
-  // of just snapping to the new window (see animateChartScroll). incidental re-renders (ray/box/layer toggles
-  // that call render() again for the SAME already-open scrip) stay instant — only these two triggers animate.
-  const prevBarCount = LAST_BAR_COUNT[sym];
-  const isNewBar = prevBarCount !== undefined && bars.length > prevBarCount;
-  const doScrollAnim = isNewBar || FORCE_SCROLL_ANIM;
-  FORCE_SCROLL_ANIM = false;
-  LAST_BAR_COUNT[sym] = bars.length;
+function buildChartExtra(bars, sym, atrArr, highF, lowF, rsiArr){
   const closes = bars.map(b=>b.c);
-  const wmaArr = wma(closes, 21);
-  const atrArr = atrWilder(bars, 21);
-  const {highF, lowF} = fractals(bars, 4);
-  const ci = choppiness(bars, 14);
-  const rsiArr = rsi(closes, 14);
-
-  const {phase, events} = computePhase(bars, wmaArr, atrArr, highF, lowF);
-  const zone = computeZone(bars, wmaArr, ci, highF, lowF);
-  const strength = computeStrength(atrArr, bars.length);
-
-  // 6-layer chart pack (visual overlays only — does not feed the phase/zone/strength dimensions above)
   const chartExtra = {
     atrArr,
     dcMidArr: donchianMid(bars, 21),
@@ -1389,13 +1559,87 @@ function render(sym){
     rsiArr: rsiArr,
     rsiWmaArr: wma(rsiArr, 9),
     rsArr: rawRS(closes, 14),
-    abcd: detectLastABCD(bars, highF, lowF, atrArr)
+    aoArr: awesomeOsc(bars),
+    abcd: detectLastABCD(bars, highF, lowF, atrArr, awesomeOsc(bars))
   };
   chartExtra.kamaHullArr = kamaHullClassify(bars, chartExtra.kamaArr, chartExtra.hullArr, chartExtra.pafFlags);
+  return chartExtra;
+}
+
+// ---------- Chart timeframe (view-only): signals/cards/alerts always run on the daily bars; D/W/M/Y only changes
+// what the chart draws (resampled from the same daily data). Drawings are stored per timeframe (key sym|W etc.). ----------
+let CHART_TF = localStorage.getItem('twv_rzst_tf_v1') || 'D';
+const DERIVED = {}; // 'SYM|W' -> resampled bars, so LIB-style lookups work for derived views without polluting LIB
+const RVOL_MIN_TURNOVER = 1000000; // Rs — below this 14-bar median turnover, RVOL is shown as 'thin' (illiquid scrips make RVOL noise)
+const TF_MIN_BARS = {W:20, M:8, Y:5}; // min bars per timeframe before its button enables (M: ~10 monthly candles from ~227 daily is enough to view; long MAs stay blank until more history)
+function resampleBars(bars, tf){
+  if(tf==='D') return bars;
+  const map = new Map();
+  bars.forEach(b=>{
+    const m = String(b.date).match(/(\d{4})-(\d{2})-(\d{2})/);
+    let key;
+    if(m){
+      const t = Date.UTC(+m[1], +m[2]-1, +m[3]);
+      const d = new Date(t);
+      if(tf==='W'){ const st = new Date(t - d.getUTCDay()*86400000); key = st.toISOString().slice(0,10); } // Sunday-start (NEPSE trades Sun–Thu)
+      else if(tf==='M') key = m[1]+'-'+m[2];
+      else key = m[1];
+    } else key = String(b.date);
+    if(!map.has(key)) map.set(key, Object.assign({}, b));
+    else { const w = map.get(key); w.h = Math.max(w.h,b.h); w.l = Math.min(w.l,b.l); w.c = b.c; w.v = (w.v||0)+(b.v||0); w.date = b.date; }
+  });
+  return Array.from(map.values());
+}
+
+function render(sym){
+  if(String(sym).includes('|')) sym = String(sym).split('|')[0]; // handlers may pass a derived view key
+  const bars = LIB[sym];
+  if(!bars || bars.length < 15){
+    document.getElementById('mainArea').innerHTML = `<div class="empty" style="grid-column:1/-1;">${sym}: only ${bars?bars.length:0} bars loaded — need at least ~30 for reliable phase/zone reads.</div>`;
+    return;
+  }
+  // did new bar(s) land for this scrip since the last time we rendered it, or did the user just touch this
+  // scrip's row (screener click)? either way the chart animates a right-to-left live-scroll slide-in instead
+  // of just snapping to the new window (see animateChartScroll). incidental re-renders (ray/box/layer toggles
+  // that call render() again for the SAME already-open scrip) stay instant — only these two triggers animate.
+  const prevBarCount = LAST_BAR_COUNT[sym];
+  const isNewBar = prevBarCount !== undefined && bars.length > prevBarCount;
+  const doScrollAnim = isNewBar || FORCE_SCROLL_ANIM;
+  FORCE_SCROLL_ANIM = false;
+  LAST_BAR_COUNT[sym] = bars.length;
+  const closes = bars.map(b=>b.c);
+  const wmaArr = wma(closes, 21);
+  const atrArr = atrWilder(bars, 21);
+  const {highF, lowF} = fractals(bars, 4);
+  const ci = choppiness(bars, 14);
+  const rsiArr = rsi(closes, 14);
+
+  const {phase, events} = computePhase(bars, wmaArr, atrArr, highF, lowF);
+  const zone = computeZone(bars, wmaArr, ci, highF, lowF);
+  const strength = computeStrength(atrArr, bars.length);
+
+  // 6-layer chart pack (visual overlays only — does not feed the phase/zone/strength dimensions above)
+  const chartExtra = buildChartExtra(bars, sym, atrArr, highF, lowF, rsiArr);
   const khLast = chartExtra.kamaHullArr[chartExtra.kamaHullArr.length-1];
   const khStreak = biasStreak(chartExtra.kamaHullArr);
 
-  const priceAlerts = checkPriceLevelAlerts(sym, bars, chartExtra.pivotSegments, AVWAPS[sym]);
+  // chart view (timeframe). Signals above stay daily.
+  const tfCounts = {W: resampleBars(bars,'W').length, M: resampleBars(bars,'M').length, Y: resampleBars(bars,'Y').length};
+  if(CHART_TF!=='D' && tfCounts[CHART_TF] < TF_MIN_BARS[CHART_TF]) CHART_TF = 'D';
+  let vBars = bars, vSym = sym, vWma = wmaArr, vHF = highF, vLF = lowF, vExtra = chartExtra;
+  if(CHART_TF!=='D'){
+    vBars = resampleBars(bars, CHART_TF); vSym = sym+'|'+CHART_TF; DERIVED[vSym] = vBars;
+    const vc = vBars.map(b=>b.c);
+    vWma = wma(vc, 21);
+    const vf = fractals(vBars, 4); vHF = vf.highF; vLF = vf.lowF;
+    vExtra = buildChartExtra(vBars, vSym, atrWilder(vBars,21), vHF, vLF, rsi(vc,14));
+  }
+  const tfBtnsHTML = ['D','W','M','Y'].map(t=>{
+    const ok = t==='D' || tfCounts[t] >= TF_MIN_BARS[t];
+    return `<button class="tfBtn mono" data-tf="${t}" ${ok?'':'disabled'} title="${ok?'':'need more history ('+tfCounts[t]+' bars, min '+TF_MIN_BARS[t]+')'}" style="padding:4px 9px;${CHART_TF===t?'border-color:var(--amber);color:var(--amber);':''}${ok?'':'opacity:.35;cursor:not-allowed;'}">${t}</button>`;
+  }).join('');
+
+  const priceAlerts = checkPriceLevelAlerts(sym, bars, chartExtra.pivotSegments, AVWAPS[sym], TRENDLINES[sym]);
   if(priceAlerts.fresh.length) playAlertBeep();
   const alertBannerHTML = priceAlerts.all.length ? `
     <div class="mono" style="grid-column:1/-1;background:rgba(245,165,36,.12);border:1px solid var(--amber);border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:var(--amber);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
@@ -1432,22 +1676,38 @@ function render(sym){
     kamahull: {state: khBadge, detail: khDetail}
   };
 
+  // rule: price below the weekly pivot = no buy. Badge shows only when below (nothing when above, to keep the header quiet).
+  const curPivSeg = (chartExtra.pivotSegments && chartExtra.pivotSegments.length) ? chartExtra.pivotSegments[chartExtra.pivotSegments.length-1] : null;
+  const pivotBadgeHTML = (curPivSeg && last.c < curPivSeg.pivot)
+    ? ` &nbsp;·&nbsp; <span class="badge b-bear" title="Rule: price below the weekly pivot = no buy">BELOW PIVOT · NO BUY (P ${curPivSeg.pivot.toFixed(2)})</span>` : '';
   document.getElementById('mainArea').innerHTML = `
     ${alertBannerHTML}
     <div class="verdict">
-      <div class="label mono">${sym} · ${last.date} · CLOSE ${last.c.toFixed(2)}</div>
-      <div class="line">${phase.state} ${biasBadge} &nbsp;·&nbsp; ${zone.type} ${zoneBadge}${ageBadge} &nbsp;·&nbsp; STRENGTH ${strength.score.toFixed(1)}/10 (${strength.band})</div>
+      <div class="label mono">${(()=>{
+        const prevC = bars[bars.length-2] ? bars[bars.length-2].c : last.c;
+        const up = last.c >= prevC, chg = last.c-prevC, chgPct = prevC ? (chg/prevC*100) : 0, col = up?'#4C8DFF':'#E14B4B';
+        return `<span style="color:${col};font-weight:800;font-size:15px;letter-spacing:.5px;text-shadow:0 0 10px ${col}66;background:${col}1A;border:1px solid ${col}55;border-radius:5px;padding:2px 8px;">${sym} ${up?'▲':'▼'} ${chg>=0?'+':''}${chg.toFixed(2)} (${chgPct>=0?'+':''}${chgPct.toFixed(2)}%)</span>`;
+      })()} · ${last.date} · CLOSE ${last.c.toFixed(2)}</div>
+      <div class="line">${phase.state} ${biasBadge} &nbsp;·&nbsp; ${zone.type} ${zoneBadge}${ageBadge} &nbsp;·&nbsp; STRENGTH ${strength.score.toFixed(1)}/10 (${strength.band})${pivotBadgeHTML}</div>
     </div>
 
     <div class="card chartcard">
       <div id="dimInfoPanel" style="display:none;"></div>
       <div id="chartMainContent">
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
+        <span style="display:flex;gap:4px;align-items:center;">${tfBtnsHTML}</span>
         <button id="rayToggleBtn" class="mono">＋ Draw Ray</button>
         <button id="trendToggleBtn" class="mono">＋ Trend Line</button>
+        <span class="mono" style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--dim);">
+          <input type="color" id="trendColorPick" value="${TREND_COL}" title="Trend line colour for new lines" style="width:24px;height:22px;padding:0;border:1px solid var(--line);background:none;cursor:pointer;">
+          <label style="cursor:pointer;" title="Auto = up green / down red"><input type="checkbox" id="trendAutoCol" ${TREND_AUTO_COL?'checked':''}> auto</label>
+          <label style="cursor:pointer;" title="Extend each trend line's mid (retest) level to the right as a ray"><input type="checkbox" id="midRayToggle" ${MID_RAY?'checked':''}> mid ray →</label>
+        </span>
         <button id="boxToggleBtn" class="mono">＋ Box</button>
+        <button id="polyToggleBtn" class="mono">＋ Polyline</button>
         <button id="avwapToggleBtn" class="mono">＋ AVWAP</button>
         <button id="abcdToggleBtn" class="mono">＋ ABCD</button>
+        <button id="fanToggleBtn" class="mono" title="Fibonacci Fan: range AND time">＋ Fib Fan</button>
         <label class="mono" style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--dim);cursor:pointer;padding:0 4px;">
           <input type="checkbox" id="comboModeToggle" ${COMBO_MODE?'checked':''}> 🔀 Combo Readout
         </label>
@@ -1470,6 +1730,8 @@ function render(sym){
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="rsiwma" ${LAYER_VIS.rsiwma?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#E8C547;">${LICENSED?'':'🔒 '}RSI 14 + WMA9 Cross</span></label>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="rs" ${LAYER_VIS.rs?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#26C281;">${LICENSED?'':'🔒 '}RS 14 (raw)</span></label>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="abcd" ${LAYER_VIS.abcd?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#E7EEF7;">${LICENSED?'':'🔒 '}ABCD Pattern (auto)</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="zigzag" ${LAYER_VIS.zigzag?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#26C281;">${LICENSED?'':'🔒 '}ZigZag (fractal-9, rise/fall 2-color)</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="dbltouch" ${LAYER_VIS.dbltouch?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#F0B93A;">${LICENSED?'':'🔒 '}Double-Touch Support/Supply (auto)</span></label>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="ma120" ${LAYER_VIS.ma120?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#D4A017;">${LICENSED?'':'🔒 '}MA120</span></label>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="ma180" ${LAYER_VIS.ma180?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#6A5ACD;">${LICENSED?'':'🔒 '}MA180</span></label>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="ma21c" ${LAYER_VIS.ma21c?'checked':''}> <span style="color:#E7EEF7;">MA21 (trend color)</span></label>
@@ -1482,6 +1744,7 @@ function render(sym){
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="stoch" ${LAYER_VIS.stoch?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#5AD1FF;">${LICENSED?'':'🔒 '}Stochastic (Time)</span></label>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="paf" ${LAYER_VIS.paf?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#9EFF6E;">${LICENSED?'':'🔒 '}Price Action Filter</span></label>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="obv" ${LAYER_VIS.obv?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#E8C547;">${LICENSED?'':'🔒 '}OBV + WMA9</span></label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="ao" ${LAYER_VIS.ao?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#B084F5;">${LICENSED?'':'🔒 '}AO (Awesome Oscillator) + harmonic D divergence</span></label>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="khsig" ${LAYER_VIS.khsig?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#FFFFFF;">${LICENSED?'':'🔒 '}KAMA/Hull Signal</span></label>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="emacross" ${LAYER_VIS.emacross?'checked':''} ${LICENSED?'':'disabled'}> <span style="color:#26C281;">${LICENSED?'':'🔒 '}EMA Cross (19/39)</span></label>
             <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" data-layer="turbo" ${LAYER_VIS.turbo?'checked':''} ${LICENSED?'':'disabled'}> <span style="background:linear-gradient(90deg,#F5D033,#B23BFF);-webkit-background-clip:text;background-clip:text;color:transparent;">${LICENSED?'':'🔒 '}Turbo Vibes</span></label>
@@ -1498,7 +1761,9 @@ function render(sym){
 
       <div id="rayList" style="margin-top:8px;"></div>
       <div id="trendList" style="margin-top:6px;"></div>
+      <div id="fanList" style="margin-top:6px;"></div>
       <div id="boxList" style="margin-top:6px;"></div>
+      <div id="polyList" style="margin-top:6px;"></div>
       <div id="avwapList" style="margin-top:6px;"></div>
       <div id="abcdList" style="margin-top:6px;"></div>
       </div>
@@ -1541,12 +1806,13 @@ function render(sym){
   `;
 
   if(doScrollAnim){
-    animateChartScroll(bars, wmaArr, highF, lowF, sym, chartExtra);
+    animateChartScroll(vBars, vWma, vHF, vLF, vSym, vExtra);
   } else {
-    drawChart(bars, wmaArr, highF, lowF, sym, chartExtra);
+    drawChart(vBars, vWma, vHF, vLF, vSym, vExtra);
   }
-  setupRayUI(sym);
-  setupLayerToggles(bars, wmaArr, highF, lowF, sym, chartExtra);
+  setupRayUI(vSym);
+  setupLayerToggles(vBars, vWma, vHF, vLF, vSym, vExtra);
+  document.querySelectorAll('.tfBtn').forEach(b=>{ b.onclick = ()=>{ if(b.disabled) return; CHART_TF = b.dataset.tf; localStorage.setItem('twv_rzst_tf_v1', CHART_TF); render(sym); }; });
   const alertToggle = document.getElementById('alertAudioToggle');
   if(alertToggle) alertToggle.onchange = ()=>{ ALERT_AUDIO_ON = alertToggle.checked; localStorage.setItem('twv_rzst_alert_audio_v1', JSON.stringify(ALERT_AUDIO_ON)); };
 }
@@ -1630,61 +1896,103 @@ function closeDimInfo(){
 window.showDimInfo = showDimInfo;
 window.closeDimInfo = closeDimInfo;
 
+let TOOL_STATE_SYM = null; // scrip a pending draw (trend/box/abcd/poly) belongs to — re-rendering the SAME scrip (timeframe switch, layer toggle, Combo Readout, etc.) must not silently wipe it
 function setupRayUI(sym){
   const rayBtn = document.getElementById('rayToggleBtn');
   const trendBtn = document.getElementById('trendToggleBtn');
   const boxBtn = document.getElementById('boxToggleBtn');
   const avwapBtn = document.getElementById('avwapToggleBtn');
   const abcdBtn = document.getElementById('abcdToggleBtn');
+  const polyBtn = document.getElementById('polyToggleBtn');
+  const fanBtn = document.getElementById('fanToggleBtn');
   const hint = document.getElementById('rayHint');
-  activeTool = null; trendPending = null; boxPending = null; abcdPending = [];
-  rayBtn.textContent = '＋ Draw Ray';
-  trendBtn.textContent = '＋ Trend Line';
-  boxBtn.textContent = '＋ Box';
-  avwapBtn.textContent = '＋ AVWAP';
-  abcdBtn.textContent = '＋ ABCD';
-  hint.textContent = 'Pick a tool, then click the chart.';
+  const scripChanged = TOOL_STATE_SYM !== sym;
+  TOOL_STATE_SYM = sym;
+  if(scripChanged){
+    activeTool = null; trendPending = null; boxPending = null; abcdPending = []; polyPending = [];
+  }
+  rayBtn.textContent = activeTool==='ray' ? '✕ Cancel' : '＋ Draw Ray';
+  trendBtn.textContent = activeTool==='trend' ? '✕ Cancel' : '＋ Trend Line';
+  boxBtn.textContent = activeTool==='box' ? '✕ Cancel' : '＋ Box';
+  avwapBtn.textContent = activeTool==='avwap' ? '✕ Cancel' : '＋ AVWAP';
+  abcdBtn.textContent = activeTool==='abcd' ? '✕ Cancel' : '＋ ABCD';
+  polyBtn.textContent = activeTool==='poly' ? '✕ Cancel' : '＋ Polyline';
+  fanBtn.textContent = activeTool==='fan' ? '✕ Cancel' : '＋ Fib Fan';
+  document.getElementById('chartCanvas').style.cursor = activeTool ? 'crosshair' : 'default';
+  hint.textContent = activeTool==='poly' ? `Point ${polyPending.length} set — click the next swing point, or click this same spot again to finish. Switching D/W/M/Y or toggling a layer no longer cancels this.`
+    : activeTool==='trend' ? (trendPending ? 'Click the end point.' : 'Click the start point, then the end point.')
+    : activeTool==='fan' ? (trendPending ? 'Click the swing end (the other extreme).' : 'Click the swing start, then the swing end — fan lines at 38.2 / 50 / 61.8 run from the start through the end bar.')
+    : activeTool==='box' ? (boxPending ? 'Click the opposite corner.' : 'Click one corner, then the opposite corner.')
+    : activeTool==='abcd' ? `Point ${['A','B','C','D'][abcdPending.length] || ''} — click the next point.`
+    : activeTool==='ray' ? 'Click a point on the chart to drop the ray.'
+    : activeTool==='avwap' ? 'Click near a candle\'s high (top half) or low (bottom half) to anchor an AVWAP there — max 5, oldest drops off.'
+    : 'Pick a tool, then click the chart.';
   const resetLabels = ()=>{
     rayBtn.textContent = activeTool==='ray' ? '✕ Cancel' : '＋ Draw Ray';
     trendBtn.textContent = activeTool==='trend' ? '✕ Cancel' : '＋ Trend Line';
     boxBtn.textContent = activeTool==='box' ? '✕ Cancel' : '＋ Box';
     avwapBtn.textContent = activeTool==='avwap' ? '✕ Cancel' : '＋ AVWAP';
     abcdBtn.textContent = activeTool==='abcd' ? '✕ Cancel' : '＋ ABCD';
+    polyBtn.textContent = activeTool==='poly' ? '✕ Cancel' : '＋ Polyline';
+    fanBtn.textContent = activeTool==='fan' ? '✕ Cancel' : '＋ Fib Fan';
     document.getElementById('chartCanvas').style.cursor = activeTool ? 'crosshair' : 'default';
   };
   rayBtn.onclick = ()=>{
     activeTool = activeTool==='ray' ? null : 'ray';
-    trendPending = null; boxPending = null; abcdPending = [];
+    trendPending = null; boxPending = null; abcdPending = []; polyPending = [];
     hint.textContent = activeTool==='ray' ? 'Click a point on the chart to drop the ray.' : 'Pick a tool, then click the chart.';
     resetLabels();
   };
   trendBtn.onclick = ()=>{
     activeTool = activeTool==='trend' ? null : 'trend';
-    trendPending = null; boxPending = null; abcdPending = [];
+    trendPending = null; boxPending = null; abcdPending = []; polyPending = [];
     hint.textContent = activeTool==='trend' ? 'Click the start point, then the end point.' : 'Pick a tool, then click the chart.';
     resetLabels();
   };
   boxBtn.onclick = ()=>{
     activeTool = activeTool==='box' ? null : 'box';
-    trendPending = null; boxPending = null; abcdPending = [];
+    trendPending = null; boxPending = null; abcdPending = []; polyPending = [];
     hint.textContent = activeTool==='box' ? 'Click one corner, then the opposite corner.' : 'Pick a tool, then click the chart.';
     resetLabels();
   };
   avwapBtn.onclick = ()=>{
     activeTool = activeTool==='avwap' ? null : 'avwap';
-    trendPending = null; boxPending = null; abcdPending = [];
+    trendPending = null; boxPending = null; abcdPending = []; polyPending = [];
     hint.textContent = activeTool==='avwap' ? 'Click near a candle\'s high (top half) or low (bottom half) to anchor an AVWAP there — max 5, oldest drops off.' : 'Pick a tool, then click the chart.';
     resetLabels();
   };
   abcdBtn.onclick = ()=>{
     activeTool = activeTool==='abcd' ? null : 'abcd';
-    trendPending = null; boxPending = null; abcdPending = [];
+    trendPending = null; boxPending = null; abcdPending = []; polyPending = [];
     hint.textContent = activeTool==='abcd' ? 'Click A, then B, then C, then D (4 points) — for you/the client to draw it manually first; the auto-detected pattern keeps running alongside it either way.' : 'Pick a tool, then click the chart.';
     resetLabels();
   };
+  fanBtn.onclick = ()=>{
+    activeTool = activeTool==='fan' ? null : 'fan';
+    trendPending = null; boxPending = null; abcdPending = []; polyPending = [];
+    hint.textContent = activeTool==='fan' ? 'Click the swing start, then the swing end — fan lines at 38.2 / 50 / 61.8 run from the start through the end bar.' : 'Pick a tool, then click the chart.';
+    resetLabels();
+  };
+  document.getElementById('trendColorPick').onchange = e=>{ TREND_COL = e.target.value; localStorage.setItem('twv_rzst_trend_col', TREND_COL); if(!document.getElementById('trendAutoCol').checked){ } };
+  document.getElementById('trendAutoCol').onchange = e=>{ TREND_AUTO_COL = e.target.checked; localStorage.setItem('twv_rzst_trend_auto', TREND_AUTO_COL?'1':'0'); };
+  document.getElementById('midRayToggle').onchange = e=>{ MID_RAY = e.target.checked; localStorage.setItem('twv_rzst_midray', MID_RAY?'1':'0'); render(sym); };
+  polyBtn.onclick = ()=>{
+    activeTool = activeTool==='poly' ? null : 'poly';
+    trendPending = null; boxPending = null; abcdPending = []; polyPending = [];
+    hint.textContent = activeTool==='poly' ? 'Click each swing point in order — click the same tool button again (✕ Cancel/Done) or double-click the chart to finish. Rise segments green, fall segments red.' : 'Pick a tool, then click the chart.';
+    resetLabels();
+  };
+  if(!LICENSED){ // no key => drawing tools stay inactive (same as the locked indicator layers)
+    activeTool = null; trendPending = null; boxPending = null; abcdPending = []; polyPending = [];
+    [rayBtn,trendBtn,boxBtn,polyBtn,avwapBtn,abcdBtn,fanBtn].forEach(b=>{ b.disabled = true; b.style.opacity = '.4'; b.style.cursor = 'not-allowed'; b.title = '🔒 Key activate garepachi matra chalchha'; });
+    document.getElementById('chartCanvas').style.cursor = 'default';
+    hint.textContent = '🔒 Drawing tools (Ray, Trend Line, Box, Polyline, AVWAP/Anchor, ABCD) key activate garepachi matra chalchha.';
+  }
   renderRayList(sym);
   renderTrendList(sym);
+  renderFanList(sym);
   renderBoxList(sym);
+  renderPolyList(sym);
   renderAvwapList(sym);
   renderManualAbcdList(sym);
   const comboToggle = document.getElementById('comboModeToggle');
@@ -1695,7 +2003,7 @@ function renderAvwapList(sym){
   const anchors = AVWAPS[sym] || [];
   const el = document.getElementById('avwapList');
   if(!anchors.length){ el.innerHTML=''; return; }
-  const bars = LIB[sym] || [];
+  const bars = LIB[sym] || DERIVED[sym] || [];
   const lastClose = bars.length ? bars[bars.length-1].c : null;
   el.innerHTML = '<div class="note" style="margin-top:0;">' + anchors.map((a,i)=>{
     const arr = avwapFrom(bars, a.globalIdx);
@@ -1794,6 +2102,21 @@ function renderTrendList(sym){
     </span>`;
   }).join('') + '</div>';
 }
+function renderFanList(sym){
+  const fans = FANS[sym] || [];
+  const el = document.getElementById('fanList');
+  if(!el) return;
+  if(!fans.length){ el.innerHTML=''; return; }
+  el.innerHTML = '<div class="note" style="margin-top:0;">' + fans.map((fn,i)=>{
+    const bars = fn.x2 - fn.x1, days = Math.round((new Date(fn.d2) - new Date(fn.d1)) / 86400000);
+    return `<span class="mono" style="display:inline-block;background:var(--panel2);border:1px solid var(--line);padding:3px 8px;border-radius:12px;margin:2px 4px 2px 0;">
+      FIB FAN ${(fn.p2-fn.p1)>=0?'+':''}${(fn.p2-fn.p1).toFixed(2)} · ${bars} bars (${days}d)
+      <span style="cursor:pointer;color:var(--red);margin-left:4px;" onclick="removeFan('${sym}',${i})">✕</span>
+    </span>`;
+  }).join('') + '</div>';
+}
+function removeFan(sym, idx){ FANS[sym].splice(idx,1); saveFans(); render(sym); }
+window.removeFan = removeFan;
 function removeTrend(sym, idx){
   TRENDLINES[sym].splice(idx,1);
   saveTrendLines();
@@ -1826,6 +2149,34 @@ function removeBox(sym, idx){
   render(sym);
 }
 window.removeBox = removeBox;
+
+function polyStats(pts){
+  const first = pts[0], last = pts[pts.length-1];
+  const priceDiff = last.price - first.price;
+  const pct = (priceDiff/first.price)*100;
+  const bars = last.globalIdx - first.globalIdx;
+  const days = Math.round((new Date(last.date) - new Date(first.date)) / 86400000);
+  return {priceDiff, pct, bars, days, points: pts.length};
+}
+function renderPolyList(sym){
+  const lines = POLYLINES[sym] || [];
+  const el = document.getElementById('polyList');
+  if(!el) return;
+  if(!lines.length){ el.innerHTML=''; return; }
+  el.innerHTML = '<div class="note" style="margin-top:0;">' + lines.map((pts,i)=>{
+    const s = polyStats(pts);
+    return `<span class="mono" style="display:inline-block;background:var(--panel2);border:1px solid var(--line);padding:3px 8px;border-radius:12px;margin:2px 4px 2px 0;">
+      POLY ${s.points}pt ${s.priceDiff>=0?'+':''}${s.priceDiff.toFixed(2)} (${s.pct>=0?'+':''}${s.pct.toFixed(1)}%) · ${s.bars} bars (${s.days}d)
+      <span style="cursor:pointer;color:var(--red);margin-left:4px;" onclick="removePoly('${sym}',${i})">✕</span>
+    </span>`;
+  }).join('') + '</div>';
+}
+function removePoly(sym, idx){
+  POLYLINES[sym].splice(idx,1);
+  savePolylines();
+  render(sym);
+}
+window.removePoly = removePoly;
 
 // ---------- export / share (data only — OHLCV, no computed indicator columns) ----------
 function scripRows(sym){
@@ -1863,11 +2214,16 @@ function exportAllExcel(){
   XLSX.writeFile(wb, 'nepse_terminal_data_'+new Date().toISOString().slice(0,10)+'.xlsx');
 }
 document.getElementById('exportAllBtn').addEventListener('click', exportAllExcel);
+document.getElementById('sectorImportBtn').addEventListener('click', ()=>document.getElementById('sectorImportFile').click());
+document.getElementById('sectorImportFile').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ importSectorList(String(r.result)); e.target.value=''; }; r.readAsText(f); });
+document.getElementById('sectorExportBtn').addEventListener('click', exportSectorList);
 document.getElementById('topExportBtn').addEventListener('click', ()=>{
   if(!currentScrip){ alert('Pick a scrip from the screener first.'); return; }
   exportScripExcel(currentScrip);
 });
 document.getElementById('topShareBtn').addEventListener('click', ()=>{
+  const dw = document.getElementById('demoWrap');
+  if(dw && getComputedStyle(dw).display !== 'none' && window.shareDemo){ window.shareDemo(); return; } // Demo (price action) tab open -> share the PA view, not the indicator chart
   if(!currentScrip){ alert('Pick a scrip from the screener first.'); return; }
   shareScrip(currentScrip);
 });
@@ -1881,7 +2237,7 @@ function exportBackup(){
   const payload = {
     version: 1,
     exportedAt: new Date().toISOString(),
-    LIB, RAYS, TRENDLINES, BOXES, AVWAPS, MANUAL_ABCD, LAYER_VIS, SECTOR_MAP
+    LIB, RAYS, TRENDLINES, BOXES, AVWAPS, MANUAL_ABCD, LAYER_VIS, SECTOR_MAP, FANS, SECTOR_MASTER
   };
   const blob = new Blob([JSON.stringify(payload)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -1899,6 +2255,8 @@ function importBackupFile(file){
       if(data.LIB){ LIB = Object.assign({}, LIB, data.LIB); saveLib(); scripCount = Object.keys(data.LIB).length; }
       if(data.RAYS){ RAYS = Object.assign({}, RAYS, data.RAYS); saveRays(); }
       if(data.TRENDLINES){ TRENDLINES = Object.assign({}, TRENDLINES, data.TRENDLINES); saveTrendLines(); }
+      if(data.SECTOR_MASTER){ SECTOR_MASTER = Object.assign({}, SECTOR_MASTER, data.SECTOR_MASTER); saveSectorMaster(); }
+      if(data.FANS){ FANS = Object.assign({}, FANS, data.FANS); saveFans(); }
       if(data.BOXES){ BOXES = Object.assign({}, BOXES, data.BOXES); saveBoxes(); }
       if(data.AVWAPS){ AVWAPS = Object.assign({}, AVWAPS, data.AVWAPS); saveAvwaps(); }
       if(data.MANUAL_ABCD){ MANUAL_ABCD = Object.assign({}, MANUAL_ABCD, data.MANUAL_ABCD); saveManualAbcd(); }
@@ -1937,7 +2295,10 @@ function bakeAndDownload(){
   seedScript.id = 'twvSeedBlock';
   seedScript.textContent = 'try{ var TWV_SEED=' + JSON.stringify(seedData) + '; Object.keys(TWV_SEED).forEach(function(k){ localStorage.setItem(k, TWV_SEED[k]); }); }catch(e){}';
   head.insertBefore(seedScript, head.firstChild);
-  const html = '<!DOCTYPE html>\n' + doc.outerHTML;
+  // carry the current scrip → sector list inside the baked copy as its built-in default
+  const masterJSON = JSON.stringify(Object.assign({}, SECTOR_MASTER_DEFAULT, SECTOR_MASTER));
+  let html = '<!DOCTYPE html>\n' + doc.outerHTML;
+  html = html.replace(/const SECTOR_MASTER_DEFAULT = \{.*\}; \/\/ built-in list goes here/, ()=>'const SECTOR_MASTER_DEFAULT = ' + masterJSON.replace(/<\//g,'<\\/') + '; // built-in list goes here');
   const blob = new Blob([html], {type:'text/html'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -1958,7 +2319,7 @@ function updateLicenseBtn(){
 function openLicenseModal(){
   const deviceId = getDeviceId();
   document.getElementById('deviceIdField').value = deviceId;
-  document.getElementById('licenseStatusLine').textContent = LICENSED ? 'Status: unlocked on this device.' : 'Status: locked — free view shows MA21 only.';
+  document.getElementById('licenseStatusLine').textContent = LICENSED ? ('Status: unlocked on this device'+LIC_INFO+'.') : LIC_NOTE+'Status: locked — free view shows MA21 only.';
   const mailBody = encodeURIComponent(`Device ID: ${deviceId}\n\n(Sent from Reversal/Zone/Strength Terminal — please reply with my key.)`);
   document.getElementById('requestKeyModalLink').href = `mailto:nirrpandey@gmail.com?subject=${encodeURIComponent('Reversal/Zone/Strength Terminal — Key Request')}&body=${mailBody}`;
   document.getElementById('keyInputField').value='';
@@ -1982,7 +2343,7 @@ document.getElementById('activateKeyBtn').addEventListener('click', async ()=>{
     if(currentScrip) render(currentScrip);
     setTimeout(()=>{ document.getElementById('licenseModal').style.display='none'; }, 900);
   } else {
-    msg.style.color='var(--red)'; msg.textContent='That key doesn\'t match this device. Double-check, or request a fresh key for this Device ID.';
+    msg.style.color='var(--red)'; msg.textContent=LIC_FAIL||'That key doesn\'t match this device. Double-check, or request a fresh key for this Device ID.';
   }
 });
 
@@ -2082,7 +2443,7 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra, animOffsetPx){
 
   // panel layout is computed first — subpanels only take space when their checkbox is ON
   const mainTop=46, mainH=292;
-  const panelDefs = [ {key:'dpo',h:62}, {key:'macd',h:86}, {key:'mfi',h:62}, {key:'stoch',h:62}, {key:'obv',h:62}, {key:'magap',h:62}, {key:'rsiwma',h:62}, {key:'rs',h:62} ];
+  const panelDefs = [ {key:'dpo',h:62}, {key:'macd',h:86}, {key:'mfi',h:62}, {key:'stoch',h:62}, {key:'obv',h:62}, {key:'magap',h:62}, {key:'rsiwma',h:62}, {key:'rs',h:62}, {key:'ao',h:62} ];
   const panelTop = {};
   let curBottom = mainTop+mainH;
   panelDefs.forEach(pd=>{
@@ -2111,6 +2472,7 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra, animOffsetPx){
   const histSlice = (extra.macdRes ? extra.macdRes.hist : []).slice(off);
   const mfiSlice = (extra.mfiArr||[]).slice(off);
   const rsiSlice = (extra.rsiArr||[]).slice(off);
+  const aoSlice = (extra.aoArr||[]).slice(off);
   const rsiWmaSlice = (extra.rsiWmaArr||[]).slice(off);
   const rsSlice = (extra.rsArr||[]).slice(off);
   const ma120Slice = (extra.ma120Arr||[]).slice(off);
@@ -2148,12 +2510,18 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra, animOffsetPx){
 
   let hi=-Infinity, lo=Infinity;
   slice.forEach(b=>{hi=Math.max(hi,b.h); lo=Math.min(lo,b.l);});
+  // keep the active-side extreme targets (R3/R4 above the pivot, S3/S4 below) inside the y-range so they always draw
+  if(LAYER_VIS.piv && pivotSegments.length){
+    const cs = pivotSegments[pivotSegments.length-1];
+    const exLv = (bars[bars.length-1].c >= cs.pivot) ? [cs.r3, cs.r4] : [cs.s3, cs.s4];
+    exLv.forEach(v=>{ if(v!=null && isFinite(v) && v>0){ hi=Math.max(hi,v); lo=Math.min(lo,v); } });
+  }
   const pad = (hi-lo)*0.08;
   hi+=pad; lo-=pad;
 
   // panel geometry already computed above (panelTop) — just alias here
   const padL=50, padR=16;
-  const dpoTop=panelTop.dpo, dpoH=62, macdTop=panelTop.macd, macdH=86, mfiTop=panelTop.mfi, mfiH=62, stochTop=panelTop.stoch, stochH=62, obvTop=panelTop.obv, obvH=62, magapTop=panelTop.magap, magapH=62, rsiwmaTop=panelTop.rsiwma, rsiwmaH=62, rsTop=panelTop.rs, rsH=62;
+  const dpoTop=panelTop.dpo, dpoH=62, macdTop=panelTop.macd, macdH=86, mfiTop=panelTop.mfi, mfiH=62, stochTop=panelTop.stoch, stochH=62, obvTop=panelTop.obv, obvH=62, magapTop=panelTop.magap, magapH=62, rsiwmaTop=panelTop.rsiwma, rsiwmaH=62, rsTop=panelTop.rs, rsH=62, aoTop=panelTop.ao, aoH=62;
   const padT=mainTop, plotH=mainH; // kept as padT/plotH — rays/trend/box tools and click handlers key off these
   const plotW = cssW-padL-padR;
   const x = i => padL + (i/(N-1))*plotW + animOffsetPx;
@@ -2413,6 +2781,7 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra, animOffsetPx){
   }
 
   // ---- Layer 1: Pivots — DeMark Weekly (one pivot/R1/S1 per calendar week, stepped — NOT one flat line) ----
+  const extremeUp = pivotSegments.length ? bars[bars.length-1].c >= pivotSegments[pivotSegments.length-1].pivot : true;
   if(LAYER_VIS.piv && pivotSegments.length){
     pivotSegments.forEach((seg, segIdx)=>{
       // clip this week's segment to the visible 90-bar window
@@ -2426,6 +2795,12 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra, animOffsetPx){
         {price:seg.r1, color:'#26C281', label:'R1', dash:[5,3]},
         {price:seg.s1, color:'#E14B4B', label:'S1', dash:[5,3]},
       ];
+      // running extreme targets — current week only, one side: price above the DeMark pivot -> R3/R4, below -> S3/S4
+      if(isCurrentWeek){
+        // R3/S3 blue, R4/S4 (the outer extreme) red
+        if(extremeUp){ lvls.push({price:seg.r3, color:'#4C8DFF', label:'R3', dash:[2,3]}, {price:seg.r4, color:'#E14B4B', label:'R4', dash:[1,3]}); }
+        else { lvls.push({price:seg.s3, color:'#4C8DFF', label:'S3', dash:[2,3]}, {price:seg.s4, color:'#E14B4B', label:'S4', dash:[1,3]}); }
+      }
       lvls.forEach(ln=>{
         const py = y(ln.price);
         if(py < padT-2 || py > padT+plotH+2) return;
@@ -2447,7 +2822,7 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra, animOffsetPx){
   if(LAYER_VIS.wma) ctx.fillStyle='#F5A524', ctx.fillText(`WMA21 ${lw!=null?lw.toFixed(2):'-'}`, padL, 11);
   if(LAYER_VIS.dc) ctx.fillStyle='#4C8DFF', ctx.fillText('DC MID', padL+95, 11);
   if(LAYER_VIS.vol) ctx.fillStyle='#E14B4B', ctx.fillText(`VOL-STOP 21×1 ${lvol!=null?lvol.toFixed(2):'-'}`, padL, 24);
-  if(LAYER_VIS.piv) ctx.fillStyle='#B8C4D9', ctx.fillText(curPivot?`PIVOT(W) ${curPivot.pivot.toFixed(2)} · R1 ${curPivot.r1.toFixed(2)} · S1 ${curPivot.s1.toFixed(2)}`:'PIVOT(W) —', padL+150, 24);
+  if(LAYER_VIS.piv) ctx.fillStyle='#B8C4D9', ctx.fillText(curPivot?`PIVOT(W) ${curPivot.pivot.toFixed(2)} · R1 ${curPivot.r1.toFixed(2)} · S1 ${curPivot.s1.toFixed(2)} · ${extremeUp?`R3 ${curPivot.r3.toFixed(2)} · R4 ${curPivot.r4.toFixed(2)}`:`S3 ${curPivot.s3.toFixed(2)} · S4 ${curPivot.s4.toFixed(2)}`}`:'PIVOT(W) —', padL+150, 24);
   // row 3 — extra indicators, name only (no live value, per request)
   let lx = padL;
   if(LAYER_VIS.kama){ ctx.fillStyle='#2EC4B6'; ctx.fillText('KAMA13', lx, 37); lx+=58; }
@@ -2471,6 +2846,38 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra, animOffsetPx){
   }
   if(LAYER_VIS.ma21c){ ctx.fillStyle='#E7EEF7'; ctx.fillText('MA21', lx, 37); lx+=48; }
   if(LAYER_VIS.chikou){ ctx.fillStyle='#E7EEF7'; ctx.fillText('CHIKOU21', lx, 37); lx+=78; }
+
+  // ZigZag — connects confirmed fractal-9 swing highs/lows in sequence, rise green / fall red (Chukul-style polyline)
+  if(LAYER_VIS.zigzag){
+    const pts = []; // {gi, price}
+    for(let gi=0; gi<bars.length; gi++){
+      if(highF[gi]) pts.push({gi, price: bars[gi].h});
+      else if(lowF[gi]) pts.push({gi, price: bars[gi].l});
+    }
+    // when consecutive confirmed points are the same type (two highs or two lows in a row), keep only the more extreme one
+    const zz = [];
+    pts.forEach(p=>{
+      const last = zz[zz.length-1];
+      const isHighPt = highF[p.gi];
+      if(last && (highF[last.gi]===isHighPt)){
+        if(isHighPt ? p.price>=last.price : p.price<=last.price) zz[zz.length-1]=p;
+      } else zz.push(p);
+    });
+    ctx.lineWidth=1.4;
+    for(let k=1;k<zz.length;k++){
+      const a=zz[k-1], b2=zz[k];
+      const li1=a.gi-off, li2=b2.gi-off;
+      if(li2 < 0 || li1 > N-1) continue; // whole segment outside current view
+      const col = b2.price>=a.price ? '#26C281' : '#E14B4B';
+      ctx.strokeStyle=col;
+      ctx.beginPath(); ctx.moveTo(x(li1), y(a.price)); ctx.lineTo(x(li2), y(b2.price)); ctx.stroke();
+    }
+    zz.forEach(p=>{
+      const li=p.gi-off; if(li<0||li>N-1) return;
+      ctx.beginPath(); ctx.arc(x(li), y(p.price), 3, 0, Math.PI*2);
+      ctx.fillStyle=cssBg; ctx.fill(); ctx.strokeStyle= highF[p.gi] ? '#B084F5' : '#4C8DFF'; ctx.lineWidth=1.4; ctx.stroke();
+    });
+  }
 
   // fractal markers
   slice.forEach((b,i)=>{
@@ -2685,6 +3092,31 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra, animOffsetPx){
     ctx.fillText(`PRICE−MA21 ${lastGap!=null?(lastGap>=0?'+':'')+lastGap.toFixed(2):'-'}`, padL, magapTop-2);
   }
 
+  // ---- Extra: AO (Awesome Oscillator), 5/34 median-price — LINE, colored by sign (above 0 = bull green,
+  //      below 0 = bear red) so a divergence (price extreme not matched by AO crossing back toward/through zero) reads at a glance ----
+  if(LAYER_VIS.ao){
+    ctx.strokeStyle='#152238'; ctx.lineWidth=1; ctx.beginPath();
+    ctx.moveTo(padL,aoTop-14); ctx.lineTo(cssW-padR,aoTop-14); ctx.stroke();
+    const vals = aoSlice.filter(v=>v!=null);
+    let aHi = vals.length ? Math.max(...vals,0.0001) : 1;
+    let aLo = vals.length ? Math.min(...vals,-0.0001) : -1;
+    const aPad = (aHi-aLo)*0.12 || 1; aHi+=aPad; aLo-=aPad;
+    const yAo = v => aoTop + (1-(v-aLo)/(aHi-aLo))*aoH;
+    ctx.setLineDash([3,3]); ctx.strokeStyle='#243350'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(padL,yAo(0)); ctx.lineTo(cssW-padR,yAo(0)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.lineWidth=1.6;
+    for(let i=1;i<aoSlice.length;i++){
+      const v0=aoSlice[i-1], v1=aoSlice[i];
+      if(v0==null || v1==null) continue;
+      ctx.strokeStyle = v1>=0 ? '#F5D033' : '#B23BFF'; // matches Turbo Vibes' own yellow/purple — color by sign (bull/bear), not rise/fall
+      ctx.beginPath(); ctx.moveTo(x(i-1),yAo(v0)); ctx.lineTo(x(i),yAo(v1)); ctx.stroke();
+    }
+    const lastAo = lastVal(aoSlice);
+    ctx.font='10px Share Tech Mono';
+    ctx.fillStyle = (lastAo!=null && lastAo>=0) ? '#F5D033' : '#B23BFF';
+    ctx.fillText(`AO 5/34  ${lastAo!=null?lastAo.toFixed(2):'-'}`, padL, aoTop-2);
+  }
+
   // ---- Combo Mode — chukul-style always-on right-edge value tags (not just hover) for DC21/Chikou (main panel)
   //      + DPO/OBV (their own subpanels, when those are also checked on) ----
   if(COMBO_MODE){
@@ -2714,6 +3146,41 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra, animOffsetPx){
   // store geometry so click handler below can convert pixels <-> price/bar-index
   const sliceStartGlobal = bars.length - N;
   chartGeom = {padL, padR, padT, plotW, plotH, hi, lo, N, cssW, cssH, sliceStartGlobal};
+
+  // Double-Touch Support/Supply — auto: 2+ confirmed fractal lows (support) or highs (supply) within TOL% of each other
+  if(LAYER_VIS.dbltouch){
+    const TOL = 0.015; // 1.5% price tolerance to count as "the same level"
+    const clusterAndDraw = (isHigh)=>{
+      const flags = isHigh ? highF : lowF;
+      const pts = []; for(let gi=0; gi<bars.length; gi++) if(flags[gi]) pts.push({gi, price: isHigh?bars[gi].h:bars[gi].l});
+      const used = new Array(pts.length).fill(false);
+      pts.forEach((p,i)=>{
+        if(used[i]) return;
+        const group = [p]; used[i]=true;
+        for(let j=i+1;j<pts.length;j++){
+          if(used[j]) continue;
+          if(Math.abs(pts[j].price-p.price)/p.price <= TOL) { group.push(pts[j]); used[j]=true; }
+        }
+        if(group.length < 2) return;
+        const avgPrice = group.reduce((a,g)=>a+g.price,0)/group.length;
+        const firstGi = Math.min(...group.map(g=>g.gi)), lastGi = Math.max(...group.map(g=>g.gi));
+        const li1 = firstGi - sliceStartGlobal;
+        if(li1 > N-1) return; // whole thing starts after the current view
+        const startLi = Math.max(0, li1);
+        const col = isHigh ? '#F0B93A' : '#4CC9F0';
+        // more touches = thinner line (the repeated dots already carry the weight, a thick line just clutters a well-proven level)
+        const lw = Math.max(0.6, 1.4 - 0.25*(group.length-2));
+        ctx.setLineDash([2,3]); ctx.strokeStyle=col; ctx.lineWidth=lw;
+        ctx.beginPath(); ctx.moveTo(x(startLi), y(avgPrice)); ctx.lineTo(x(N-1), y(avgPrice)); ctx.stroke();
+        ctx.setLineDash([]);
+        group.forEach(g=>{ const li=g.gi-sliceStartGlobal; if(li<0||li>N-1) return;
+          ctx.beginPath(); ctx.arc(x(li), y(g.price), 4, 0, Math.PI*2); ctx.fillStyle=cssBg; ctx.fill(); ctx.strokeStyle=col; ctx.lineWidth=1.4; ctx.stroke(); });
+        ctx.fillStyle=col; ctx.font='bold 9px Share Tech Mono'; ctx.textAlign='left';
+        ctx.fillText(`${isHigh?'SUPPLY':'SUPPORT'} ${group.length}× ${avgPrice.toFixed(2)}`, x(N-1)-4-ctx.measureText(`${isHigh?'SUPPLY':'SUPPORT'} ${group.length}× ${avgPrice.toFixed(2)}`).width, y(avgPrice)-4);
+      });
+    };
+    clusterAndDraw(true); clusterAndDraw(false);
+  }
 
   // draw existing rays for this scrip
   const rays = RAYS[sym] || [];
@@ -2788,6 +3255,18 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra, animOffsetPx){
       ctx.fillRect(dPx-eqW/2, eqY, eqW, 16);
       ctx.fillStyle='#04140F'; ctx.textAlign='center'; ctx.fillText(eqTxt, dPx, eqY+11);
       ctx.textAlign='left';
+      // AO divergence readout at D — confirms (price extreme not matched by AO = real exhaustion) or flags no-confirmation
+      if(extra.abcd.aoDivergence){
+        const confirms = extra.abcd.aoDivergence === (bullish?'bullish':'bearish');
+        const aoTxt = confirms ? 'AO DIVERGENCE ✓' : 'AO: no divergence';
+        const aoW = ctx.measureText(aoTxt).width+10;
+        const aoY = eqY + (bullish ? 18 : -18);
+        ctx.fillStyle = confirms ? '#B084F5' : '#3A4A63';
+        ctx.fillRect(dPx-aoW/2, aoY, aoW, 16);
+        ctx.fillStyle = confirms ? '#04140F' : '#9AAFC9';
+        ctx.textAlign='center'; ctx.fillText(aoTxt, dPx, aoY+11);
+        ctx.textAlign='left';
+      }
 
       // AB / CD leg angle labels — ATR-normalized pseudo-angle (see legAngleDeg): ≥45°=sharp,
       // 30-45°=moderate, <30°=RANGE (no clear direction). Small text tag near each leg's midpoint.
@@ -2848,23 +3327,90 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra, animOffsetPx){
     const li1 = l.x1 - sliceStartGlobal, li2 = l.x2 - sliceStartGlobal;
     if(li1 < 0 || li1 > N-1 || li2 < 0 || li2 > N-1) return; // outside current 90-bar view
     const px1=x(li1), py1=y(l.p1), px2=x(li2), py2=y(l.p2);
-    ctx.strokeStyle = '#4C8DFF'; ctx.lineWidth=1.6;
+    // direction color: chronologically-later point higher price = up(demand)/green, lower = down(supply)/red, flat = neutral blue
+    const rising = l.p2 > l.p1, falling = l.p2 < l.p1;
+    const lineCol = l.col || (rising ? '#26C281' : falling ? '#E14B4B' : '#4C8DFF');
+    ctx.strokeStyle = lineCol; ctx.lineWidth=1.6;
     ctx.beginPath(); ctx.moveTo(px1,py1); ctx.lineTo(px2,py2); ctx.stroke();
     [[px1,py1],[px2,py2]].forEach(([cx,cy])=>{
-      ctx.beginPath(); ctx.arc(cx,cy,3.5,0,Math.PI*2); ctx.strokeStyle='#4C8DFF'; ctx.fillStyle=cssBg; ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx,cy,3.5,0,Math.PI*2); ctx.strokeStyle=lineCol; ctx.fillStyle=cssBg; ctx.fill(); ctx.stroke();
     });
+    // midpoint level (50% of the low->high / high->low move) — dashed guide across the line's x-span, with price label
+    const pMid = (l.p1 + l.p2) / 2;
+    const pyMid = y(pMid);
+    const pxLo = Math.min(px1,px2), pxHi = Math.max(px1,px2);
+    ctx.setLineDash([4,3]); ctx.strokeStyle = lineCol; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pxLo,pyMid); ctx.lineTo(MID_RAY ? (cssW-padR) : pxHi,pyMid); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = lineCol; ctx.font='9px Share Tech Mono'; ctx.textAlign='left';
+    ctx.fillText(`ctr ${pMid.toFixed(2)}`, pxHi+4, pyMid+3);
+    // for down (supply) legs: also mark the actual candle where price later crosses back through the mid level — the real retest, vs the geometric centre point above
+    if(falling){
+      let crossGlobalIdx = null;
+      for(let gi=l.x2+1; gi<bars.length; gi++){
+        const bb = bars[gi];
+        if(bb.h >= pMid && bb.l <= pMid){ crossGlobalIdx = gi; break; }
+      }
+      if(crossGlobalIdx!=null){
+        const cli = crossGlobalIdx - sliceStartGlobal;
+        if(cli>=0 && cli<=N-1){
+          const ccx=x(cli), ccy=y(pMid);
+          ctx.beginPath(); ctx.arc(ccx,ccy,4,0,Math.PI*2); ctx.strokeStyle=lineCol; ctx.fillStyle=cssBg; ctx.fill(); ctx.stroke();
+          ctx.fillStyle=lineCol; ctx.font='9px Share Tech Mono'; ctx.textAlign='center';
+          ctx.fillText('retest', ccx, ccy-8);
+          ctx.textAlign='left';
+        }
+      }
+    }
     const s = trendStats(l);
     const angle = Math.atan2(-(py2-py1), (px2-px1)) * 180/Math.PI;
+    const dirLabel = rising ? 'UP (L→H)' : falling ? 'DOWN (H→L)' : 'FLAT';
     const lines3 = [
       `${s.priceDiff>=0?'+':''}${s.priceDiff.toFixed(2)} (${s.pct>=0?'+':''}${s.pct.toFixed(1)}%)`,
-      `${s.bars} bars (${s.days}d)`,
-      `${angle.toFixed(0)}°`
+      `${s.bars} bars (${s.days}d) · ${angle.toFixed(0)}°`,
+      dirLabel
     ];
-    const boxX = Math.min(px2+8, cssW-padR-100), boxY = Math.max(padT, Math.min(py2-36, padT+plotH-40));
-    ctx.fillStyle = 'rgba(10,18,32,0.92)'; ctx.fillRect(boxX, boxY, 96, 40);
-    ctx.strokeStyle = '#1A2740'; ctx.strokeRect(boxX, boxY, 96, 40);
+    const boxX = Math.min(px2+8, cssW-padR-100), boxY = Math.max(padT, Math.min(py2-48, padT+plotH-52));
+    ctx.fillStyle = 'rgba(10,18,32,0.92)'; ctx.fillRect(boxX, boxY, 100, 52);
+    ctx.strokeStyle = '#1A2740'; ctx.strokeRect(boxX, boxY, 100, 52);
     ctx.fillStyle = '#E7EEF7'; ctx.font='10px Share Tech Mono';
-    lines3.forEach((t,i)=> ctx.fillText(t, boxX+6, boxY+13+i*12));
+    ctx.fillText(lines3[0], boxX+6, boxY+13);
+    ctx.fillText(lines3[1], boxX+6, boxY+25);
+    ctx.fillStyle = lineCol; ctx.fillText(lines3[2], boxX+6, boxY+37);
+    ctx.fillStyle = '#8fa8c0'; ctx.fillText(`mid ${pMid.toFixed(2)}`, boxX+6, boxY+49);
+  });
+
+  // Fibonacci fans: lines from the swing start through the swing end's bar at 38.2 / 50 / 61.8 of the price move
+  // (price AND time), plus Fibonacci time marks at 0.618 / 1 / 1.618 / 2.618 x the swing's bar-length
+  (FANS[sym] || []).forEach(fnn=>{
+    const li1 = fnn.x1 - sliceStartGlobal, li2 = fnn.x2 - sliceStartGlobal;
+    if(li1 < 0 || li1 > N-1 || li2 < 0 || li2 > N-1) return;
+    const px1=x(li1), py1=y(fnn.p1), px2=x(li2), dx=px2-px1, right=cssW-padR;
+    if(dx<=0) return;
+    ctx.save(); ctx.beginPath(); ctx.rect(padL, padT, plotW, plotH); ctx.clip();
+    [[1,'#9aa7bd','100'],[0.618,'#F5A524','61.8'],[0.5,'#B084F5','50'],[0.382,'#26C281','38.2']].forEach(([f,col,lab])=>{
+      const pEnd = fnn.p1 + (fnn.p2-fnn.p1)*f, pyEnd = y(pEnd);
+      const yr = py1 + ((pyEnd-py1)/dx)*(right-px1);
+      ctx.strokeStyle = col; ctx.lineWidth = f===1?1.2:1.3; ctx.setLineDash(f===1?[2,3]:[]);
+      ctx.beginPath(); ctx.moveTo(px1,py1); ctx.lineTo(right,yr); ctx.stroke(); ctx.setLineDash([]);
+      const pr = fnn.p1 + (fnn.p2-fnn.p1)*f*((right-px1)/dx);
+      ctx.fillStyle = col; ctx.font='9px Share Tech Mono'; ctx.textAlign='right';
+      const ly = Math.max(padT+9, Math.min(padT+plotH-3, yr-3));
+      ctx.fillText(`${lab} → ${pr.toFixed(1)}`, right-2, ly);
+    });
+    ctx.restore();
+    ctx.textAlign='left';
+    ctx.fillStyle = '#E7EEF7'; ctx.font='9px Share Tech Mono';
+    ctx.beginPath(); ctx.arc(px1,py1,3.5,0,Math.PI*2); ctx.strokeStyle='#9aa7bd'; ctx.fillStyle=cssBg; ctx.fill(); ctx.stroke();
+    const L = fnn.x2 - fnn.x1;
+    [[0.618,'.618'],[1,'1'],[1.618,'1.618'],[2.618,'2.618']].forEach(([f,lab])=>{
+      const gi = fnn.x1 + Math.round(L*f), li = gi - sliceStartGlobal;
+      if(li<0 || li>N-1) return;
+      const tx = x(li);
+      ctx.strokeStyle='rgba(154,167,189,0.5)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(tx, padT+plotH-8); ctx.lineTo(tx, padT+plotH); ctx.stroke();
+      ctx.fillStyle='#9aa7bd'; ctx.textAlign='center'; ctx.fillText('T'+lab, tx, padT+plotH-11); ctx.textAlign='left';
+    });
   });
 
   // draw existing boxes for this scrip
@@ -2900,7 +3446,7 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra, animOffsetPx){
   }
 
   // trend-line in-progress marker (first point clicked, waiting on second)
-  if(activeTool==='trend' && trendPending){
+  if((activeTool==='trend'||activeTool==='fan') && trendPending){
     const li = trendPending.globalIdx - sliceStartGlobal;
     if(li>=0 && li<=N-1){
       const cx=x(li), cy=y(trendPending.price);
@@ -2933,6 +3479,26 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra, animOffsetPx){
     }
   }
 
+  // manual Polyline — in-progress points + finished polylines, rise segments green / fall segments red
+  const drawPolylinePts = (pts, dashed)=>{
+    if(dashed) { ctx.setLineDash([3,3]); ctx.lineWidth=1.2; } else { ctx.setLineDash([]); ctx.lineWidth=1.6; }
+    for(let i=1;i<pts.length;i++){
+      const a=pts[i-1], b2=pts[i];
+      const li1=a.globalIdx-sliceStartGlobal, li2=b2.globalIdx-sliceStartGlobal;
+      if(li2<0 || li1>N-1) continue;
+      ctx.strokeStyle = b2.price>=a.price ? (dashed?'#26C281AA':'#26C281') : (dashed?'#E14B4BAA':'#E14B4B');
+      ctx.beginPath(); ctx.moveTo(x(li1),y(a.price)); ctx.lineTo(x(li2),y(b2.price)); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    pts.forEach(p=>{
+      const li=p.globalIdx-sliceStartGlobal; if(li<0||li>N-1) return;
+      ctx.beginPath(); ctx.arc(x(li),y(p.price),3.5,0,Math.PI*2);
+      ctx.fillStyle=cssBg; ctx.fill(); ctx.strokeStyle='#E7EEF7'; ctx.lineWidth=1.2; ctx.stroke();
+    });
+  };
+  (POLYLINES[sym]||[]).forEach(pts=> drawPolylinePts(pts, false));
+  if(activeTool==='poly' && polyPending.length) drawPolylinePts(polyPending, true);
+
   // click-to-place: ray (single click) or trend line (two clicks)
   canvas.onclick = (e)=>{
     if(!activeTool || !chartGeom) return;
@@ -2960,11 +3526,26 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra, animOffsetPx){
         let a = trendPending, b = {globalIdx, price, date: bar.date};
         if(b.globalIdx < a.globalIdx){ const t=a; a=b; b=t; } // keep chronological order
         if(!TRENDLINES[sym]) TRENDLINES[sym] = [];
-        TRENDLINES[sym].push({x1:a.globalIdx, p1:a.price, d1:a.date, x2:b.globalIdx, p2:b.price, d2:b.date});
+        TRENDLINES[sym].push(Object.assign({x1:a.globalIdx, p1:a.price, d1:a.date, x2:b.globalIdx, p2:b.price, d2:b.date}, TREND_AUTO_COL ? {} : {col:TREND_COL}));
         saveTrendLines();
         trendPending = null;
         activeTool = null;
         render(sym);
+      }
+    } else if(activeTool === 'fan'){
+      if(!trendPending){
+        trendPending = {globalIdx, price, date: bar.date};
+        document.getElementById('rayHint').textContent = 'Swing start set — click the swing end to finish.';
+        drawChart(bars, wmaArr, highF, lowF, sym, extra);
+      } else {
+        let a = trendPending, b = {globalIdx, price, date: bar.date};
+        if(b.globalIdx < a.globalIdx){ const t=a; a=b; b=t; }
+        if(b.globalIdx > a.globalIdx && b.price !== a.price){
+          if(!FANS[sym]) FANS[sym] = [];
+          FANS[sym].push({x1:a.globalIdx, p1:a.price, d1:a.date, x2:b.globalIdx, p2:b.price, d2:b.date});
+          saveFans();
+        }
+        trendPending = null; activeTool = null; render(sym);
       }
     } else if(activeTool === 'box'){
       if(!boxPending){
@@ -3014,7 +3595,39 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra, animOffsetPx){
         activeTool = null;
         render(sym);
       }
+    } else if(activeTool === 'poly'){
+      // clicking within ~6px of the last point (in screen space) finishes the polyline instead of adding a duplicate point
+      const g2 = chartGeom;
+      const lastPt = polyPending[polyPending.length-1];
+      let finishByRepeat = false;
+      if(lastPt){
+        const lastLi = lastPt.globalIdx - g2.sliceStartGlobal;
+        const lastX = g2.padL + (lastLi/(g2.N-1))*g2.plotW;
+        const lastY = g2.padT + (1-(lastPt.price-g2.lo)/(g2.hi-g2.lo))*g2.plotH;
+        finishByRepeat = Math.hypot(mx-lastX, my-lastY) < 6;
+      }
+      if(finishByRepeat && polyPending.length >= 2){
+        if(!POLYLINES[sym]) POLYLINES[sym] = [];
+        POLYLINES[sym].push(polyPending);
+        savePolylines();
+        polyPending = [];
+        activeTool = null;
+        render(sym);
+      } else {
+        polyPending.push({globalIdx, price, date: bar.date});
+        document.getElementById('rayHint').textContent = `Point ${polyPending.length} set — click the next swing point, or click this same spot again to finish (min 2 points).`;
+        drawChart(bars, wmaArr, highF, lowF, sym, extra);
+      }
     }
+  };
+  canvas.ondblclick = (e)=>{
+    if(activeTool !== 'poly' || polyPending.length < 2) return;
+    if(!POLYLINES[sym]) POLYLINES[sym] = [];
+    POLYLINES[sym].push(polyPending);
+    savePolylines();
+    polyPending = [];
+    activeTool = null;
+    render(sym);
   };
 
   // hover / touch tooltip — LTP, date, volume, high/low for the nearest candle
@@ -3030,7 +3643,17 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra, animOffsetPx){
     const bar = bars[globalIdx];
     if(!bar){ tooltip.style.display='none'; return; }
     const typicalP = (bar.h + bar.l + bar.c) / 3;
-    let html = `<b>${bar.date}</b><br>LTP ${bar.c.toFixed(2)} &nbsp;H ${bar.h.toFixed(2)} &nbsp;L ${bar.l.toFixed(2)}<br>Vol ${Math.round(bar.v).toLocaleString()} &nbsp;P ${typicalP.toFixed(2)}`;
+    // RVOL = this bar's volume / MEDIAN volume of the previous 14 bars (today excluded; median so one huge day can't drag the base).
+    // If the 14-bar median turnover (volume × close) is below RVOL_MIN_TURNOVER the scrip is too thin for RVOL to mean anything -> 'thin'.
+    let rvolTxt = '';
+    if(globalIdx >= 14){
+      const vols=[], tos=[];
+      for(let k=globalIdx-14; k<globalIdx; k++){ const v=bars[k].v||0; vols.push(v); tos.push(v*bars[k].c); }
+      const med = a=>{ const t=a.slice().sort((x,y)=>x-y), m=t.length>>1; return t.length%2 ? t[m] : (t[m-1]+t[m])/2; };
+      const mv = med(vols), mt = med(tos);
+      rvolTxt = (mv<=0 || mt < RVOL_MIN_TURNOVER) ? ` &nbsp;RVOL thin` : ` &nbsp;RVOL ${((bar.v||0)/mv).toFixed(2)}×`;
+    }
+    let html = `<b>${bar.date}</b><br>LTP ${bar.c.toFixed(2)} &nbsp;H ${bar.h.toFixed(2)} &nbsp;L ${bar.l.toFixed(2)}<br>Vol ${Math.round(bar.v).toLocaleString()} &nbsp;P ${typicalP.toFixed(2)}${rvolTxt}`;
     if(COMBO_MODE){
       const dcAt = (extra.dcMidArr||[])[globalIdx];
       const chikouAt = (extra.chikouArr||[])[globalIdx];
@@ -3062,6 +3685,416 @@ function drawChart(bars, wmaArr, highF, lowF, sym, extra, animOffsetPx){
 }
 
 checkLicense().then(()=>{ updateLicenseBtn(); renderAll(); });
+</script>
+<script>
+(function(){
+"use strict";
+var DEMO_NEEDS_KEY=false; // true => Demo tab needs the licence key (same gate as the indicators)
+var $=function(i){return document.getElementById("dm_"+i)};
+var bars=[],zones=[],vis=[],sel=-1,name="",vEnd=-1;
+function detect(B){
+  var n=B.length,rng=B.map(function(b){return b.h-b.l}),body=function(b){return Math.abs(b.c-b.o)};
+  function avg(i){var s=0,c=0;for(var k=Math.max(0,i-14);k<i;k++){s+=rng[k];c++}return c?s/c:rng[i]}
+  function strong(i){var r=rng[i];return r>0&&body(B[i])>=0.4*r&&r>=0.9*avg(i)}
+  function baseC(i,li){var r=rng[i];return r===0||(body(B[i])<=0.8*r&&r<=1.0*rng[li])}
+  var Z=[];
+  for(var i=1;i<n-1;i++){
+    if(!strong(i))continue;
+    var j=i+1;while(j<n&&baseC(j,i)&&j-i-1<4)j++;
+    if(j-i-1<1||j>=n||!strong(j))continue;
+    var inUp=B[i].c>B[i].o,outUp=B[j].c>B[j].o,bs=B.slice(i+1,j);
+    var hi=Math.max.apply(0,bs.map(function(b){return b.h})),lo=Math.min.apply(0,bs.map(function(b){return b.l}));
+    if(outUp?B[j].c<=hi:B[j].c>=lo)continue;
+    var bd=[];bs.forEach(function(b){bd.push(b.o,b.c)});
+    var z={pat:(inUp?"R":"D")+"B"+(outUp?"R":"D"),kind:outUp?"demand":"supply",rev:inUp!==outUp,s:i+1,e:j-1,legIn:i,legOut:j,
+      prox:outUp?Math.max.apply(0,bd):Math.min.apply(0,bd),dist:outUp?lo:hi,tests:0,broken:-1};
+    var pt=false;z.tev=[];
+    for(var k=j+1;k<n;k++){var tc;
+      if(outUp){if(B[k].c<z.dist){z.broken=k;break}tc=B[k].l<=z.prox}
+      else{if(B[k].c>z.dist){z.broken=k;break}tc=B[k].h>=z.prox}
+      if(tc&&!pt)z.tev.push(k);pt=tc;
+    }
+    z.tests=z.tev.length;
+    z.status=z.broken>=0?"broken":(z.tests?"tested":"fresh");
+    z.end=z.broken>=0?z.broken:n-1;
+    Z.push(z);i=j-1;
+  }
+  return Z;
+}
+var DBR=[[130,127,131,126],[127,123,128,122],[123,118,124,117],[118,112,119,111],[112,108,113,107],[108,106,109,105],[106,108,109,105],[108,106,109,105.5],[107,115,116,106.5],[115,122,123,114],[122,128,129,121],[128,126,129,124],[126,121,127,120],[121,116,122,115],[116,111,117,110],[111,109.5,112,109],[109.5,114,115,108.5]];
+var RBR=[[92,95,96,91],[95,99,100,94],[99,103,104,98],[103,107,108,102],[107,113,114,106],[113,111,114,110],[111,112.5,113.5,110],[112.5,111,113.5,110.5],[112,120,121,111.5],[120,127,128,119],[127,133,134,126],[133,131,134,129],[131,126,132,125],[126,121,127,120],[121,116,122,115],[116,113.5,117,113],[113.5,118,119,112.5]];
+function demo(k){
+  var src=(k==="DBR"||k==="RBD")?DBR:RBR,m=(k==="RBD"||k==="DBD"),st=src[0][0],pre=[];
+  for(var i=0;i<12;i++)pre.push([st,st+(i%2?1:-1)*0.6,st+1,st-0.8]);
+  var d0=Date.UTC(2026,6,1),out=pre.concat(src).map(function(r,i){
+    var o=r[0],c=r[1],h=r[2],l=r[3];if(m){o=228-o;c=228-c;var t=h;h=228-l;l=228-t}
+    return{t:new Date(d0+i*86400000).toISOString().slice(0,10),o:o,h:h,l:l,c:c}});
+  setBars(out,"Demo "+k+" (banaiyeko data, real NEPSE hoina)",k);
+}
+// ---------- Nirr pipe structure (levels 1-2-3 + B target) ----------
+// 1 = top of the rise (pipe candle high) · 2 = where the rise started; price returns there within 10 candles
+// 3 = recent swing level below (prior swing low / range base) · B target = 1:1 below level 3  (3 - (1 - 3)).
+// Bottom version = mirror image.
+var NP={minI:3,maxI:5,big:1.2,body:.6,dil:.6,retMax:10,tol:.015,swing:60};
+function npTop(M){
+  var out=[],n=M.length,h,L,k,i;
+  for(h=20;h<n-2;h++){
+    var sr=0;for(k=h-15;k<h-1;k++)sr+=M[k].h-M[k].l;var avg=sr/14;if(avg<=0)continue;
+    var hit=null;
+    for(L=NP.minI;L<=NP.maxI&&!hit;L++){
+      var s0=h-L,e=h-1,ok=true,gr=0,bsum=0;
+      for(i=s0;i<=e;i++){if(M[i].c>M[i].o)gr++;bsum+=Math.abs(M[i].c-M[i].o)}
+      if(gr<L-1||M[e].c<=M[s0].o)continue;
+      if(M[s0].h-M[s0].l<NP.big*avg)continue;
+      for(i=s0+1;i<=Math.min(s0+2,e);i++){var rg=M[i].h-M[i].l;if(!(M[i].c>M[i].o&&rg>0&&(M[i].c-M[i].o)/rg>=NP.body)){ok=false;break}}
+      if(!ok)continue;
+      if(Math.abs(M[h].c-M[h].o)>NP.dil*(bsum/L))continue;
+      hit={s:s0,e:e,H:Math.max(M[e].h,M[h].h),A:M[s0].o};
+    }
+    if(!hit)continue;
+    var j=-1;
+    for(k=h+1;k<=Math.min(n-1,h+NP.retMax);k++)if(M[k].l<=hit.A*(1+NP.tol)){j=k;break}
+    if(j<0)continue;
+    var l3=Infinity,kLow=hit.s;for(k=Math.max(0,hit.s-NP.swing);k<hit.s;k++)if(M[k].l<l3){l3=M[k].l;kLow=k}
+    if(!(l3<hit.A))l3=hit.A;
+    var T=l3-(hit.H-l3),full=false;
+    var inv=false;for(k=j+1;k<n;k++){if(M[k].l<=T){full=true;break}if(M[k].c>hit.H){inv=true;break}}
+    var brk=-1;for(k=j+1;k<n;k++)if(M[k].c<l3){brk=k;break}
+    out.push({s:hit.s,h:h,j:j,H:hit.H,A:hit.A,L3:l3,T:T,full:full,inv:inv,kLow:kLow,brk:brk,danger:M[h].o<=(M[h-1].o+M[h-1].c)/2});h=j;
+  }
+  return out;
+}
+function findNP(B){
+  var top=npTop(B).map(function(r){r.kind="top";return r});
+  var M=B.map(function(b){return{o:-b.o,h:-b.l,l:-b.h,c:-b.c,t:b.t}});
+  var bot=npTop(M).map(function(r){return{kind:"bottom",s:r.s,h:r.h,j:r.j,H:-r.H,A:-r.A,L3:-r.L3,T:-r.T,full:r.full,inv:r.inv,kLow:r.kLow,brk:r.brk,danger:r.danger}});
+  return top.concat(bot);
+}
+// Angle bands (Nirr): bull lead-in <45 gentle, 45+ strength, 65-75 bump&run zone; bear lead-in ~11 / ~22.5 = reversal-type
+function angTag(a,bt,amax){
+  if(bt)return a<=16.9?["~11° reversal-type ✓","var(--up)"]:a<=28.1?["~22.5° reversal-type ✓","var(--up)"]:["steep fall ⚠","var(--amb)"];
+  if(a<=amax)return["gentle ✓","var(--up)"];
+  if(a<65)return["strong (45+)","var(--amb)"];
+  if(a<=75)return["bump&run zone (65-75) ⚠","var(--dn)"];
+  return["extreme ⚠","var(--dn)"];
+}
+// Momentum = a COMBINATION of the terminal's own ATR-based tools, read at the return bar j:
+//   DC = close vs Donchian(89) mid. T/S = TEMA(21) vs SEB(21) · CKS = Chande Kroll Stop (10,1,9) · Hull = Hull(13) slope. Each gives one vote.
+var DC_P=89,momCache=null; // DC period: close back inside the Donchian mid = momentum diluted
+function momTag(r,bt,x,y){
+  if(typeof tema!=="function"||typeof sebLine!=="function"||typeof cks!=="function"||typeof hullMA!=="function"||typeof donchianMid!=="function")return"";
+  if(!momCache||momCache.n!==bars.length||momCache.t!==bars[bars.length-1].t){
+    var cl=bars.map(function(b){return b.c});
+    momCache={n:bars.length,t:bars[bars.length-1].t,te:tema(cl,21),se:sebLine(cl,21),ck:cks(bars,10,1,9),hu:hullMA(cl,13),dc:donchianMid(bars,DC_P)};
+  }
+  var k=r.j,te=momCache.te[k],se=momCache.se[k],ls=momCache.ck.longStop[k],ss=momCache.ck.shortStop[k],h0=momCache.hu[k],h1=momCache.hu[k-1],dm=momCache.dc[k];
+  if(te==null||se==null)return"";
+  var c=bars[k].c,v=[];
+  if(bt){v=[te>=se,ss!=null&&c>ss,h0!=null&&h1!=null&&h0>h1,dm!=null&&c>dm]}else{v=[te<se,ls!=null&&c<ls,h0!=null&&h1!=null&&h0<h1,dm!=null&&c<dm]}
+  var n=v.filter(Boolean).length,col=n===4?"var(--up)":n>=2?"var(--amb)":"var(--dn)",m=function(b){return b?"✓":"✗"};
+  var lab="mom "+(bt?"↑ ":"↓ ")+n+"/4 · T/S"+m(v[0])+" CKS"+m(v[1])+" Hull"+m(v[2])+" DC"+m(v[3]);
+  return'<text x="'+x+'" y="'+y+'" font-size="9" font-weight="700" fill="'+col+'" text-anchor="middle">'+lab+'</text>';
+}
+// ---------- Pipe top / bottom (Bulkowski) ----------
+var PIPE={tol:0.015,spike:1.3,conf:5,trend:true}; // editable from "Pipe setting"
+var PIPE_PRESETS={scrip:{tol:1.5,spike:1.3,conf:5,trend:true},strict:{tol:1.0,spike:1.3,conf:5,trend:true},loose:{tol:3,spike:1.0,conf:7,trend:false}};
+// where a candle opened relative to the previous candle's body: 0 = body low, 1 = body high, 0.5 = middle
+function openPos(o,p){var lo=Math.min(p.o,p.c),hi=Math.max(p.o,p.c);return hi>lo?(o-lo)/(hi-lo):(o===lo?.5:-1)}
+function findPipes(B){
+  var out=[],n=B.length,i,k;
+  for(i=15;i<n-1;i++){
+    var a=B[i],b=B[i+1],sr=0;
+    for(k=i-14;k<i;k++)sr+=B[k].h-B[k].l;
+    var avg=sr/14;if(avg<=0)continue;
+    if(a.h-a.l<PIPE.spike*avg||b.h-b.l<PIPE.spike*avg)continue;
+    var lo=Math.min(a.l,b.l),hi=Math.max(a.h,b.h),conf=-1,kind=null;
+    if(Math.abs(a.l-b.l)/lo<=PIPE.tol&&(!PIPE.trend||B[i-1].c<B[i-10].c)){
+      kind="bottom";for(k=i+2;k<=Math.min(n-1,i+1+PIPE.conf);k++)if(B[k].c>hi){conf=k;break}
+    }else if(Math.abs(a.h-b.h)/hi<=PIPE.tol&&(!PIPE.trend||B[i-1].c>B[i-10].c)){
+      kind="top";for(k=i+2;k<=Math.min(n-1,i+1+PIPE.conf);k++)if(B[k].c<lo){conf=k;break}
+    }
+    if(kind){
+      var q1=openPos(a.o,B[i-1]),opn=q1>=0&&q1<=1,mid=q1>=.25&&q1<=.75; // first spike candle vs the candle before it
+      out.push({kind:kind,i:i,conf:conf,lo:lo,hi:hi,inside:opn,mid:mid});i++}
+  }
+  return out;
+}
+function pipeNote(z){
+  var P=findPipes(bars),dem=z.kind==="demand",r=[];
+  P.forEach(function(p){
+    if(p.i<=z.legOut||p.kind!==(dem?"bottom":"top"))return;
+    var px=dem?p.lo:p.hi,zl=Math.min(z.prox,z.dist),zh=Math.max(z.prox,z.dist);
+    if(px>=zl*0.99&&px<=zh*1.01)r.push(bars[p.i].t+" ("+(p.conf>=0?"confirmed":"confirmation baaki")+")");
+  });
+  return r.length?'<br><b style="display:inline">Pipe '+(dem?"bottom":"top")+':</b> yo zone ma bhetiyo — '+r.join(", ")+'।':'';
+}
+// ---------- Odds Enhancers (demo only) ----------
+function oddsOf(z,B,Z){
+  if(z.status==="broken")return{tot:0,S:0,T:0,F:0,R:0,H:0,rr:0,g:"X"};
+  var n=B.length,lo0=Math.max(0,z.legOut-14),sr=0,c=0,k;
+  for(k=lo0;k<z.legOut;k++){sr+=B[k].h-B[k].l;c++}
+  var avg=c?sr/c:0,lg=B[z.legOut],rg=lg.h-lg.l,bd=Math.abs(lg.c-lg.o);
+  var S=(avg>0?(rg>=2*avg?2:rg>=1.4*avg?1:0):0)+(rg>0&&bd>=0.7*rg?1:0);
+  var nb=z.e-z.s+1,T=nb<=2?2:nb===3?1:0;
+  var F=z.status==="broken"?0:z.tests===0?2:z.tests===1?1:0;
+  var dem=z.kind==="demand",risk=Math.abs(z.prox-z.dist),tg=null;
+  Z.forEach(function(o){if(o===z||o.status==="broken"||o.kind===z.kind)return;
+    if(dem&&o.prox>z.prox&&(tg===null||o.prox<tg))tg=o.prox;
+    if(!dem&&o.prox<z.prox&&(tg===null||o.prox>tg))tg=o.prox});
+  var w0=Math.max(0,n-120),hi=-Infinity,lo=Infinity;
+  for(k=w0;k<n;k++){hi=Math.max(hi,B[k].h);lo=Math.min(lo,B[k].l)}
+  if(tg===null)tg=dem?hi:lo;
+  var rw=dem?tg-z.prox:z.prox-tg,rr=risk>0?rw/risk:0,R=rr>=3?2:rr>=2?1:0;
+  var pos=hi>lo?(z.prox-lo)/(hi-lo):.5,H=(dem?pos<=.5:pos>=.5)?1:0;
+  var tot=S+T+F+R+H;
+  return{tot:tot,S:S,T:T,F:F,R:R,H:H,rr:rr,g:tot>=8?"A":tot>=5?"B":"C"};
+}
+function oddsChip(o){if(o.g==="X")return'<span style="color:var(--mut)">n/a (broken)</span>';var col=o.g==="A"?"var(--up)":o.g==="B"?"var(--amb)":"var(--dn)";
+  return'<span style="color:'+col+';font-weight:700">'+o.tot+'/10 '+o.g+'</span>'}
+function oddsBlock(z){
+  var o=oddsOf(z,bars,zones);
+  if(o.g==="X")return'<br><b style="display:inline">Odds Enhancers: n/a</b> — zone broken (price ne distal paar garyo), so score diyeko chhaina।';
+  return'<br><b style="display:inline">Odds Enhancers: '+oddsChip(o)+'</b> — Strength '+o.S+'/3 · Time '+o.T+'/2 · Fresh '+o.F+'/2 · R:R '+o.R+'/2 ('+o.rr.toFixed(1)+':1) · Curve '+o.H+'/1'+
+   pipeNote(z)+'<br><span class="lbl">8-10 = A (best), 5-7 = B, 5 bhanda kam = skip। Strength = leg-out ko size · Time = base ma kati candle (kam = ramro) · Fresh = abhai chhoeko chhaina · R:R = agaadi ko opposite zone samma ko jagga · Curve = price range ko sasto/mahango side.</span>'}
+// ---------- state / render ----------
+var by=null;
+function setBars(b,nm,want){
+  bars=b;name=nm;zones=detect(bars);sel=-1;
+  var list=zones.slice().sort(function(a,c){return c.end-a.end||c.s-a.s});
+  zones=list;
+  if(want){var m=zones.filter(function(z){return z.pat===want}).sort(function(a,c){return a.s-c.s})[0];if(m)sel=zones.indexOf(m)}
+  if(sel<0)sel=firstVisible();
+  vEnd=-1;frame(sel);draw();
+}
+function frame(zi){
+  var z=zones[zi];if(!z)return;
+  var n=bars.length,N=Math.min(+$("n").value,n),ve=(vEnd<0||vEnd>n-1)?n-1:Math.max(N-1,vEnd),w0=ve-N+1;
+  if(z.legIn>=w0&&z.legOut<=ve)return;
+  var left=Math.max(0,z.legIn-Math.round(N*.25));ve=Math.min(n-1,left+N-1);
+  if(n-1-ve<N*.15)ve=n-1;vEnd=ve>=n-1?-1:ve;
+}
+function firstVisible(){for(var i=0;i<zones.length;i++)if(!($("hb").checked&&zones[i].status==="broken"))return i;return zones.length?0:-1}
+function fmt(v){return v.toFixed(Math.abs(v)<100?2:1)}
+function draw(){
+  var n=bars.length,N=Math.min(+$("n").value,n),ve=(vEnd<0||vEnd>n-1)?n-1:Math.max(N-1,vEnd),w0=ve-N+1,W=760,PL=10,PR=600,PT=14,PB=382,step=(PR-PL)/N,bw=Math.max(1.6,step*.6);
+  var lo=Infinity,hi=-Infinity;for(var i=w0;i<=ve;i++){lo=Math.min(lo,bars[i].l);hi=Math.max(hi,bars[i].h)}
+  var pad=(hi-lo)*.06;lo-=pad;hi+=pad;
+  function X(i){return PL+(i-w0+.5)*step}
+  function Y(p){return Math.max(PT,Math.min(PB,PB-(p-lo)/(hi-lo)*(PB-PT)))}
+  var o="";
+  for(var g=0;g<5;g++){var y=PT+g*(PB-PT)/4,pv=hi-g*(hi-lo)/4;o+='<line x1="'+PL+'" x2="'+PR+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)"/><text x="'+(PR+6)+'" y="'+(y+4)+'" font-size="10" fill="var(--mut)">'+fmt(pv)+'</text>'}
+  var hide=$("hb").checked,shown=[];
+  zones.forEach(function(z,zi){
+    if(z.end<w0||z.s>ve||(hide&&z.status==="broken"&&zi!==sel))return;shown.push(zi);
+    var x0=X(Math.max(z.s,w0))-step/2,x1=(z.broken<0?PR:Math.min(PR,X(z.end)+step/2)),yp=Y(z.prox),yd=Y(z.dist),top=Math.min(yp,yd),h=Math.max(2,Math.abs(yp-yd));
+    var c=z.kind==="demand"?"var(--up)":"var(--dn)",on=zi===sel,op=z.status==="broken"?.45:1;
+    o+='<g opacity="'+op+'"><rect x="'+x0+'" y="'+top+'" width="'+(x1-x0)+'" height="'+h+'" fill="'+(z.kind==="demand"?"var(--zd)":"var(--zs)")+'"'+(on?' stroke="'+c+'" stroke-width="1.5"':'')+' style="cursor:pointer" data-z="'+zi+'"/>';
+    if(on){
+      o+='<line x1="'+x0+'" x2="'+x1+'" y1="'+yp+'" y2="'+yp+'" stroke="'+c+'" stroke-width="2.2" stroke-dasharray="7 4"/><line x1="'+x0+'" x2="'+x1+'" y1="'+yd+'" y2="'+yd+'" stroke="var(--amb)" stroke-width="2.2"/>';
+      var up=z.kind==="demand";
+      o+='<text x="'+(PR+40)+'" y="'+(up?yp-5:yp+14)+'" font-size="12" font-weight="700" fill="'+c+'">Proximal '+fmt(z.prox)+'</text><text x="'+(PR+40)+'" y="'+(up?yd+15:yd-5)+'" font-size="12" font-weight="700" fill="var(--amb)">Distal '+fmt(z.dist)+'</text>';
+    }
+    o+='<text x="'+(x0+3)+'" y="'+(top-3)+'" font-size="11" font-weight="700" fill="'+c+'">'+z.pat+'</text></g>';
+  });
+  for(var i=w0;i<=ve;i++){var b=bars[i],up=b.c>=b.o,col=up?"var(--up)":"var(--dn)",x=X(i);
+    o+='<line x1="'+x+'" x2="'+x+'" y1="'+Y(b.h)+'" y2="'+Y(b.l)+'" stroke="'+col+'"/><rect x="'+(x-bw/2)+'" y="'+Math.min(Y(b.o),Y(b.c))+'" width="'+bw+'" height="'+Math.max(1,Math.abs(Y(b.o)-Y(b.c)))+'" fill="'+col+'"/>'}
+  var zs=zones[sel];
+  if(zs&&zs.legOut>=w0&&zs.legOut<=ve){
+    [["Leg-in",zs.legIn],["Base",Math.round((zs.s+zs.e)/2)],["Leg-out",zs.legOut]].forEach(function(m){
+      if(m[1]<w0||m[1]>ve)return;var b=bars[m[1]],x=X(m[1]),yy=Y(b.h)-6,tx=Math.max(PL+24,Math.min(PR-24,x));
+      o+='<rect x="'+(tx-26)+'" y="'+(yy-14)+'" width="52" height="15" rx="3" fill="var(--ink)"/><text x="'+tx+'" y="'+(yy-3)+'" font-size="10.5" font-weight="700" fill="var(--bg)" text-anchor="middle">'+m[0]+'</text>';
+    });
+  }
+  var k=[w0,Math.floor((w0+ve)/2),ve];
+  k.forEach(function(i,j){o+='<text x="'+X(i)+'" y="396" font-size="10" fill="var(--mut)" text-anchor="'+(j===0?"start":j===2?"end":"middle")+'">'+bars[i].t+'</text>'});
+  if($("np").checked){var lk=Math.max(0,Math.round(+$("nlk").value||0));var cnt={top:0,bottom:0};findNP(bars).forEach(function(r){
+    var num=++cnt[r.kind];
+    if(r.j<w0||r.s>ve)return;
+    var bt=r.kind==="bottom",x0=X(Math.max(r.h,w0));
+    function lv(p,col,lab,dash){
+      if(p<lo||p>hi){o+='<text x="'+(PR-4)+'" y="'+(p<lo?PB-3:PT+9)+'" font-size="9" font-weight="700" fill="'+col+'" text-anchor="end">'+(p<lo?"↓ ":"↑ ")+lab+' '+fmt(p)+'</text>';return}
+      var y=Y(p);o+='<line x1="'+x0+'" x2="'+PR+'" y1="'+y+'" y2="'+y+'" stroke="'+col+'" stroke-width="1.3"'+(dash?' stroke-dasharray="6 4"':'')+'/><text x="'+(PR-4)+'" y="'+(y-3)+'" font-size="9" font-weight="700" fill="'+col+'" text-anchor="end">'+lab+' '+fmt(p)+'</text>'}
+    var amax=Math.max(5,Math.min(85,+$("nag").value||45)),sc=(PB-PT)/(hi-lo),ang=null;
+    if(Math.abs(r.A-r.L3)>0&&r.s-r.kLow>=5)ang=Math.atan((Math.abs(r.A-r.L3)*sc)/((r.s-r.kLow)*step))*180/Math.PI;
+    var xr=X(Math.max(r.s,w0)),xb=X(Math.min(ve,r.brk>=0?r.brk:ve)),yH0=Y(r.H),yL3=Y(r.L3),yT0=Y(r.T);
+    o+='<rect x="'+xr+'" y="'+Math.min(yH0,yL3)+'" width="'+Math.max(2,xb-xr)+'" height="'+Math.max(2,Math.abs(yL3-yH0))+'" fill="none" stroke="var(--dn)" stroke-width="1.2" opacity=".75"/><text x="'+(xr+4)+'" y="'+(Math.min(yH0,yL3)+11)+'" font-size="9" font-weight="800" fill="var(--dn)">PHASE A · '+num+'</text>';
+    if(r.brk>=0&&r.brk<=ve){var xw=X(r.brk),ww=Math.min(PR-xw,Math.max(2,xb-xr)>0?(X(r.brk)-xr):40);
+      o+='<rect x="'+xw+'" y="'+Math.min(yL3,yT0)+'" width="'+Math.max(2,Math.min(PR-xw,xw-xr))+'" height="'+Math.max(2,Math.abs(yT0-yL3))+'" fill="none" stroke="var(--ink)" stroke-width="1.2" stroke-dasharray="4 3" opacity=".7"/><text x="'+(xw+4)+'" y="'+(Math.min(yL3,yT0)+11)+'" font-size="9" font-weight="800" fill="var(--ink)">PHASE B · '+num+'</text>'}
+    lv(r.H,"var(--amb)","1",false);
+    lv((r.H+r.L3)/2,"var(--ink)","2 mid/retest",false);
+    lv(r.L3,"#22D3EE","3",false);
+    lv(r.T,bt?"var(--up)":"var(--dn)","B target 1:1",true);
+    o+='<text x="'+X(Math.max(r.h,w0))+'" y="'+(bt?Y(r.H)+14:Y(r.H)-6)+'" font-size="9" font-weight="700" fill="'+(bt?"var(--up)":"var(--dn)")+'" text-anchor="middle">NIRR '+(bt?"BOTTOM":"TOP")+(r.danger?(bt?" ★ STRONG":" ⚠ DANGER"):"")+' · '+(r.full?"✓ PASS":r.inv?"✗ INVALID":"● LIVE")+'</text>'+(ang===null?'':'<text x="'+X(Math.max(r.h,w0))+'" y="'+(bt?Y(r.H)+25:Y(r.H)-17)+'" font-size="9" font-weight="700" fill="'+angTag(ang,bt,amax)[1]+'" text-anchor="middle">∠ '+Math.round(ang)+'° '+angTag(ang,bt,amax)[0]+'</text>')+momTag(r,bt,X(Math.max(r.h,w0)),(bt?Y(r.H)+36:Y(r.H)-28));
+    if(lk>0&&r.j+lk<=ve&&r.A>=lo&&r.A<=hi){var xl=X(r.j+lk),yA=Y(r.A);o+='<line x1="'+xl+'" x2="'+xl+'" y1="'+(yA-9)+'" y2="'+(yA+9)+'" stroke="var(--amb)" stroke-width="1.6"/><text x="'+xl+'" y="'+(yA-12)+'" font-size="8" fill="var(--amb)" text-anchor="middle">T+'+lk+'</text>'}
+  })}
+  if($("pp").checked){findPipes(bars).forEach(function(p){
+    if(p.i<w0||p.i+1>ve)return;
+    var bt=p.kind==="bottom",x1=X(p.i)-step*.5,x2=X(p.i+1)+step*.5,y=bt?Y(p.lo)+6:Y(p.hi)-6,col=bt?"var(--up)":"var(--dn)";
+    o+='<path d="M'+x1+' '+(y+(bt?-3:3))+' V'+y+' H'+x2+' V'+(y+(bt?-3:3))+'" fill="none" stroke="'+col+'" stroke-width="1.6"/>'+
+       '<text x="'+((x1+x2)/2)+'" y="'+(bt?y+12:y-5)+'" font-size="9" font-weight="700" fill="'+col+'" text-anchor="middle">PIPE'+(p.conf>=0?" ✓":"")+(p.mid?" · MID ★":p.inside?" · inside":"")+'</text>';
+  })}
+  var lgi=document.getElementById("brandLogoImg");
+  if(lgi&&lgi.src){o+='<defs><clipPath id="dmlg"><rect x="12" y="366" width="14" height="14" rx="4"/></clipPath></defs><image href="'+lgi.src+'" x="12" y="366" width="14" height="14" opacity=".8" clip-path="url(#dmlg)" preserveAspectRatio="xMidYMid slice"/>'}
+  $("svg").innerHTML=o;
+  $("msg").textContent=name+" · "+n+" bars · "+zones.length+" zone fotyo ("+zones.filter(function(z){return z.status!=="broken"}).length+" alive)";
+  // list
+  var h="";
+  zones.forEach(function(z,zi){if(shown.indexOf(zi)<0)return;
+    h+='<button class="zc" data-z="'+zi+'" aria-pressed="'+(zi===sel)+'"><b style="color:'+(z.kind==="demand"?"var(--up)":"var(--dn)")+'">'+z.pat+'</b> · '+(z.kind==="demand"?"Demand":"Supply")+'<small>'+z.status.toUpperCase()+(z.tests?" ("+z.tests+"x tested)":"")+' · '+fmt(z.prox)+' – '+fmt(z.dist)+'</small><small>base: '+bars[z.s].t+' · Odds '+oddsChip(oddsOf(z,bars,zones))+'</small></button>'});
+  $("zl").innerHTML=h||'<span class="lbl">Yo window ma zone bhetiyena. Bars badhaunus ya arko scrip/CSV hernus.</span>';
+  explain();nowBanner();touchPanel();scanPanel();
+}
+
+function shareDemo(){
+  if(!bars.length){alert("Pahila scrip load garnus।");return}
+  var z=zones[sel],svg=$("svg"),cs=getComputedStyle(document.getElementById("demoWrap"));
+  var str=new XMLSerializer().serializeToString(svg).replace(/var\(--([a-z0-9]+)\)/gi,function(m,k){return cs.getPropertyValue("--"+k).trim()||"#888"});
+  if(str.indexOf("xmlns=")<0)str=str.replace("<svg ",'<svg xmlns="http://www.w3.org/2000/svg" ');
+  str=str.replace("<svg ",'<svg width="760" height="400" style="font-family:Chakra Petch,Arial,sans-serif" ');
+  var img=new Image();
+  img.onload=function(){
+    var S=2,W=760,HH=58,CH=400,IH=62,FH=30,T=HH+CH+IH+FH,cv=document.createElement("canvas");cv.width=W*S;cv.height=T*S;
+    var c=cv.getContext("2d");c.scale(S,S);
+    c.fillStyle="#040B16";c.fillRect(0,0,W,T);
+    c.fillStyle="#0A1220";c.fillRect(8,HH,W-16,CH);
+    c.fillStyle="#E7EEF7";c.font="bold 17px sans-serif";c.fillText(name,16,26);
+    c.fillStyle="#F5A524";c.font="bold 11px sans-serif";c.fillText("PRICE ACTION · SUPPLY / DEMAND ZONE VIEW",16,44);
+    c.drawImage(img,0,HH,W,CH);
+    var o=z&&z.status!=="broken"?oddsOf(z,bars,zones):null,y=HH+CH+22;
+    c.fillStyle="#E7EEF7";c.font="bold 13px sans-serif";
+    c.fillText(z?zdesc(z)+" · "+z.status.toUpperCase()+(z.tests?" ("+z.tests+"x tested)":""):"Zone chhaina",16,y,W-32);
+    c.fillStyle="#6E8199";c.font="12px sans-serif";
+    c.fillText(z?(o?"Odds "+o.tot+"/10 "+o.g+" — Strength "+o.S+"/3 · Time "+o.T+"/2 · Fresh "+o.F+"/2 · R:R "+o.R+"/2 · Curve "+o.H+"/1":"Odds n/a (zone broken)"):"",16,y+20,W-32);
+    c.fillText("Proximal "+(z?fmt(z.prox):"-")+" · Distal "+(z?fmt(z.dist):"-")+" · "+bars[bars.length-1].t,16,y+38,W-32);
+    c.fillStyle="#6E8199";c.font="10px monospace";
+    c.fillText("tradevibes.blogspot.com · nepsevibes.com · Trade With Vibes — teaching tool, not a buy/sell signal",16,T-11,W-32);
+    cv.toBlob(function(blob){
+      var fn=name+"_priceaction_demo.png",file=new File([blob],fn,{type:"image/png"});
+      if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+        navigator.share({files:[file],title:name+" — Price Action zones"}).catch(function(){});return}
+      var u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=fn;a.click();URL.revokeObjectURL(u);
+    });
+  };
+  img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(str);
+}
+window.shareDemo=shareDemo;
+$("share").addEventListener("click",shareDemo);
+
+function nearest(Z,B){
+  var last=B[B.length-1],best=null;
+  Z.forEach(function(z){if(z.status==="broken")return;
+    var t=z.kind==="demand"?(last.l<=z.prox&&last.c>=z.dist):(last.h>=z.prox&&last.c<=z.dist),p=(last.c-z.prox)/z.prox*100;
+    var sc=t?-1:Math.abs(p);if(!best||sc<best.sc)best={z:z,touch:t,pct:p,sc:sc};
+  });return best;
+}
+function zdesc(z){return z.pat+" "+(z.kind==="demand"?"Demand":"Supply")+" "+fmt(z.dist)+"–"+fmt(z.prox)}
+function nowBanner(){
+  var r=nearest(zones,bars),e=$("now");
+  if(!r){e.innerHTML="<b>Ahile alive zone chhaina</b>Yo scrip ma sabai zone broken bhaisakyo ya zone bhetiyena।";return}
+  e.style.borderLeftColor=r.touch?"var(--amb)":"var(--line)";
+  e.innerHTML=r.touch?"<b>🔔 Ahile TOUCH: "+zdesc(r.z)+"</b>Aajako candle le yo zone chhuyo — tala 'Touch portion' ma sano view herna milchha।"
+   :"<b>Najik ko alive zone: "+zdesc(r.z)+"</b>Price ahile zone bhanda "+Math.abs(r.pct).toFixed(1)+"% "+(r.pct>0?"mathi":"tala")+" chha — abhai touch bhaeko chhaina।";
+}
+function touchPanel(){
+  var z=zones[sel],e=$("tc");
+  if(!z){e.innerHTML="";return}
+  var n=bars.length,k=z.tev.length?z.tev[z.tev.length-1]:-1,start,end;
+  if(k>=0){end=Math.min(n-1,k+8);start=Math.max(0,Math.min(z.legIn-1,k-14))}else{end=Math.min(n-1,z.legOut+10);start=Math.max(0,z.legIn-2)}
+  start=Math.max(start,end-45);
+  var W=380,H=200,PL=6,PR=300,PT=14,PB=186,N=end-start+1,st=(PR-PL)/N,bw=Math.max(2,st*.6),lo=Math.min(z.prox,z.dist),hi=Math.max(z.prox,z.dist);
+  for(var i=start;i<=end;i++){lo=Math.min(lo,bars[i].l);hi=Math.max(hi,bars[i].h)}
+  var pd=(hi-lo)*.08;lo-=pd;hi+=pd;
+  function X(i){return PL+(i-start+.5)*st}function Y(p){return PB-(p-lo)/(hi-lo)*(PB-PT)}
+  var c=z.kind==="demand"?"var(--up)":"var(--dn)",yp=Y(z.prox),yd=Y(z.dist),o="";
+  var x0=X(Math.max(z.s,start))-st/2;
+  o+='<rect x="'+x0+'" y="'+Math.min(yp,yd)+'" width="'+(PR-x0)+'" height="'+Math.max(2,Math.abs(yp-yd))+'" fill="'+(z.kind==="demand"?"var(--zd)":"var(--zs)")+'"/>'+
+     '<line x1="'+x0+'" x2="'+PR+'" y1="'+yp+'" y2="'+yp+'" stroke="'+c+'" stroke-width="2" stroke-dasharray="6 3"/><line x1="'+x0+'" x2="'+PR+'" y1="'+yd+'" y2="'+yd+'" stroke="var(--amb)" stroke-width="2"/>'+
+     '<text x="'+(PR+5)+'" y="'+(yp+4)+'" font-size="10.5" font-weight="700" fill="'+c+'">Prox '+fmt(z.prox)+'</text><text x="'+(PR+5)+'" y="'+(yd+4)+'" font-size="10.5" font-weight="700" fill="var(--amb)">Dist '+fmt(z.dist)+'</text>';
+  for(var i=start;i<=end;i++){var b=bars[i],up=b.c>=b.o,col=up?"var(--up)":"var(--dn)",x=X(i);
+    o+='<line x1="'+x+'" x2="'+x+'" y1="'+Y(b.h)+'" y2="'+Y(b.l)+'" stroke="'+col+'"/><rect x="'+(x-bw/2)+'" y="'+Math.min(Y(b.o),Y(b.c))+'" width="'+bw+'" height="'+Math.max(1,Math.abs(Y(b.o)-Y(b.c)))+'" fill="'+col+'"/>'}
+  function tag(i,t,above){if(i<start||i>end)return;var x=Math.max(PL+22,Math.min(PR-22,X(i))),y=above?Y(bars[i].h)-5:Y(bars[i].l)+17;
+    o+='<rect x="'+(x-22)+'" y="'+(y-12)+'" width="44" height="14" rx="3" fill="var(--ink)"/><text x="'+x+'" y="'+(y-2)+'" font-size="9.5" font-weight="700" fill="var(--bg)" text-anchor="middle">'+t+'</text>'}
+  tag(z.legIn,"Leg-in",true);tag(z.legOut,"Leg-out",true);
+  z.tev.forEach(function(t){if(t>=start&&t<=end){o+='<circle cx="'+X(t)+'" cy="'+Y(z.kind==="demand"?bars[t].l:bars[t].h)+'" r="8" fill="none" stroke="var(--amb)" stroke-width="2.5"/>'}});
+  if(k>=0)tag(k,"TOUCH",z.kind==="supply");
+  o+='<text x="'+PL+'" y="198" font-size="9.5" fill="var(--mut)">'+bars[start].t+'</text><text x="'+PR+'" y="198" font-size="9.5" fill="var(--mut)" text-anchor="end">'+bars[end].t+'</text>';
+  var txt;
+  if(k<0)txt="Yo zone abhai <b>touch bhaeko chhaina</b> (Fresh)। Price zone tira aaepachi yaha sano view herne।";
+  else{var kk=Math.min(n-1,k+5),mv=(bars[kk].c-z.prox)/z.prox*100,fav=z.kind==="demand"?mv:-mv;
+    txt=kk===k?"<b>Pachillo touch: "+bars[k].t+"</b> — yo nai latest candle ho, result aba herne।"
+      :"<b>Pachillo touch: "+bars[k].t+"</b> — "+(kk-k)+" bar pachi price "+(mv>=0?"mathi ":"tala ")+Math.abs(mv).toFixed(1)+"% → "+(fav>0?"✔ zone le kaam garyo (bounce)":"✘ zone le kaam garena");
+    txt+="<br>Jamma touch: "+z.tev.length+" patak ("+z.tev.slice(-4).map(function(t){return bars[t].t}).join(", ")+")"}
+  e.innerHTML="<b>Touch portion — "+zdesc(z)+"</b>"+txt+'<svg class="mini" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Zoomed touch view">'+o+'</svg>';
+}
+function scanPanel(){
+  var rows=Object.keys(SC).map(function(k){var Z=detect(SC[k]),r=nearest(Z,SC[k]);return{k:k,r:r,Z:Z,B:SC[k]}});
+  rows.sort(function(a,b){return(a.r?a.r.sc:1e9)-(b.r?b.r.sc:1e9)});
+  $("scan").innerHTML="<tr><th>Scrip</th><th>Najik ko alive zone</th><th>Range</th><th>Price ahile</th><th>Odds</th></tr>"+rows.map(function(x){
+    if(!x.r)return'<tr class="srow" data-sc="'+x.k+'"><td>'+x.k+'</td><td colspan="4">alive zone chhaina</td></tr>';
+    var z=x.r.z;return'<tr class="srow" data-sc="'+x.k.replace(/"/g,"&quot;")+'"><td><b>'+x.k+'</b></td><td style="color:'+(z.kind==="demand"?"var(--up)":"var(--dn)")+'">'+z.pat+" "+(z.kind==="demand"?"Demand":"Supply")+" · "+z.status+'</td><td>'+fmt(z.dist)+" – "+fmt(z.prox)+'</td><td>'+(x.r.touch?"🔔 TOUCH ahile":Math.abs(x.r.pct).toFixed(1)+"% "+(x.r.pct>0?"mathi":"tala"))+'</td><td>'+oddsChip(oddsOf(z,x.B,x.Z))+'</td></tr>'}).join("");
+}
+function explain(){
+  var z=zones[sel],e=$("exp");
+  if(!z){e.innerHTML="<b>Zone chhaniyena</b>Kunai zone click garnus ya arko CSV / demo hernus।";return}
+  var sup=z.kind==="supply",last=bars[bars.length-1].c,A=Math.abs;
+  var meaning=sup?"<b>SUPPLY = bechne zone.</b> Yaha bata price tala gayo — yaha pharkera aaepachi bechne dabab (sellers) hunchha।"
+                 :"<b>DEMAND = kinne zone.</b> Yaha bata price mathi gayo — yaha pharkera aaepachi kinne dabab (buyers) hunchha।";
+  var dist=(last-z.prox)/z.prox*100,pos;
+  if(!sup)pos=last>z.prox?"Ahile price zone bhanda "+dist.toFixed(1)+"% mathi chha।":(last>=z.dist?"Ahile price zone ko bhitra chha।":"Price zone talo chha — zone tuteko ho।");
+  else pos=last<z.prox?"Ahile price zone bhanda "+A(dist).toFixed(1)+"% talo chha।":(last<=z.dist?"Ahile price zone ko bhitra chha।":"Price zone mathi chha — zone tuteko ho।");
+  var st={fresh:"Fresh: price le zone abhai chhoeko chhaina।",tested:"Tested: price le zone chhoisakyo ("+z.tests+" patak)।",broken:"Broken: price le distal paar garyo — zone fail।"}[z.status];
+  var dir=z.legIn>=0?(bars[z.legIn].c>bars[z.legIn].o?"mathi":"tala"):"";
+  e.innerHTML=meaning+"Leg-in: "+bars[z.legIn].t+" ("+dir+" tira thulo candle) → Base: "+(z.e-z.s+1)+" sano candle → Leg-out: "+bars[z.legOut].t+" ("+(sup?"tala":"mathi")+" tira thulo candle)।<br>"+
+   "Proximal "+fmt(z.prox)+" · Distal "+fmt(z.dist)+" · "+st+" "+pos+oddsBlock(z);
+}
+
+// ---------- terminal integration ----------
+var SC={},on=false,wrap=document.getElementById("demoWrap"),dbtn=document.getElementById("demoBtn");
+function syncSC(){
+  SC={};var L=(typeof LIB!=="undefined"&&LIB)||{};
+  Object.keys(L).forEach(function(k){var a=L[k];if(!a||a.length<6)return;
+    var r=a.slice();if(r.length>1&&Date.parse(r[0].date)>Date.parse(r[r.length-1].date))r.reverse(); // oldest first
+    SC[k]=r.map(function(b,i){var o=isFinite(b.o)?b.o:(i?r[i-1].c:b.c);return{t:b.date,o:o,h:Math.max(b.h,o,b.c),l:Math.min(b.l,o,b.c),c:b.c}})});
+}
+function fillSC(cur){var s=$("sc");s.innerHTML='<option value="">— scrip chuna —</option>'+Object.keys(SC).map(function(k){var e=k.replace(/&/g,"&amp;").replace(/</g,"&lt;");return'<option value="'+e+'"'+(k===cur?" selected":"")+">"+e+"</option>"}).join("")}
+function pick(k){if(!SC[k])return;fillSC(k);setBars(SC[k],k)}
+function start(){
+  syncSC();fillSC("");
+  var cs=(typeof currentScrip!=="undefined"&&currentScrip&&SC[currentScrip])?currentScrip:Object.keys(SC)[0];
+  if(cs)pick(cs);else{demo("DBR");$("msg").textContent+=" · Terminal ma abhai scrip load bhaeko chhaina — Load CSV(s) garnus।"}
+}
+function openDemo(){
+  if(DEMO_NEEDS_KEY&&typeof LICENSED!=="undefined"&&!LICENSED){alert("Demo kholna key chahinchha (🔒 button).");return}
+  on=true;document.body.classList.add("demo-on");wrap.style.display="block";dbtn.textContent="← Terminal";start();window.scrollTo(0,0);
+}
+function closeDemo(){on=false;document.body.classList.remove("demo-on");wrap.style.display="none";dbtn.textContent="🎓 Demo"}
+dbtn.addEventListener("click",function(){on?closeDemo():openDemo()});
+wrap.querySelectorAll("[data-demo]").forEach(function(b){b.addEventListener("click",function(){demo(b.dataset.demo);fillSC("")})});
+$("sc").addEventListener("change",function(){if($("sc").value)pick($("sc").value)});
+$("sc").addEventListener("focus",function(){var v=$("sc").value;syncSC();fillSC(v)});
+$("n").addEventListener("change",function(){vEnd=-1;frame(sel);draw()});
+$("pp").addEventListener("change",draw);$("np").addEventListener("change",draw);$("nlk").addEventListener("change",draw);$("nag").addEventListener("change",draw);
+function applyPipeUI(redraw){
+  PIPE.tol=Math.max(.1,+$("ptol").value||1.5)/100;PIPE.spike=Math.max(.5,+$("psp").value||1.3);
+  PIPE.conf=Math.max(1,Math.round(+$("pcf").value||5));PIPE.trend=$("ptr").checked;
+  if(redraw&&bars.length)draw();
+}
+function loadPreset(k){var p=PIPE_PRESETS[k]||PIPE_PRESETS.scrip;$("ptol").value=p.tol;$("psp").value=p.spike;$("pcf").value=p.conf;$("ptr").checked=p.trend;applyPipeUI(true)}
+$("ppre").addEventListener("change",function(){loadPreset($("ppre").value)});
+["ptol","psp","pcf","ptr"].forEach(function(k){$(k).addEventListener("change",function(){applyPipeUI(true)})});
+loadPreset("scrip");
+
+$("hb").addEventListener("change",function(){if(zones[sel]&&$("hb").checked&&zones[sel].status==="broken")sel=firstVisible();draw()});
+wrap.addEventListener("click",function(e){
+  var sr=e.target.closest("[data-sc]");if(sr){pick(sr.dataset.sc);return}
+  var t=e.target.closest("[data-z]");if(t){sel=+t.dataset.z;frame(sel);draw();$("svg").scrollIntoView({behavior:"smooth",block:"nearest"})}
+});
+document.addEventListener("keydown",function(e){
+  if(!on||/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName))return;
+  var vis=zones.map(function(z,i){return i}).filter(function(i){return !($("hb").checked&&zones[i].status==="broken"&&i!==sel)}),p=vis.indexOf(sel);
+  if(e.key==="ArrowRight"&&p<vis.length-1){sel=vis[p+1];frame(sel);draw()}else if(e.key==="ArrowLeft"&&p>0){sel=vis[p-1];frame(sel);draw()}
+});
+})();
 </script>
 </body>
 </html>
